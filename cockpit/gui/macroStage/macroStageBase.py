@@ -163,6 +163,7 @@ class MacroStageBase(wx.glcanvas.GLCanvas):
     # cause us to redisplay ourselves in a bit, thanks to self.refreshWaiter.
     def onMotion(self, axis, position):
         self.curStagePosition[axis] = position
+        self.shouldForceRedraw = True
 
 
     ## Step sizes have changed, which means we get to redraw.
