@@ -335,25 +335,9 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
     def __init__(self, *args, **kwargs):
         super(MicroscopeXYStage, self).__init__(*args, **kwargs)
         #XYstage class init functions
-        #Limits have to come from config as some stages
-        #eg PriorProScanIII can only find limits by moving to them
-        #and we dont want to do that every init.
-
-        LIMITS_PAT = r"(?P<limits:>\(\s*\(\s*[-]?\d*\s*,\s*[-]?\d*\s*\)\s*,\s*\(\s*[-]?\d*\s*\,\s*[-]?\d*\s*\)\))"
-
-        try :
-            limitString = config.get('softlimits')
-            parsed = re.search(LIMITS_PAT, limitString)
-            if not parsed:
-                # Could not parse config entry.
-                raise Exception('Bad config: Microscope Stage Limits.')
-                # No transform tuple
-            else:
-                lstr = parsed.groupdict()['limits']
-                self.softlimits=eval(lstr)
-        except:
-            print ("Microscope Stage no limits section setting default.")
-            self.softlimits=[[-10000,-10000],[10000,10000]]
+        #Limits come from microsocpe as they are hardware depemdant.
+        hardlimits=self.get_hard_limits()
+        self.softlimits=np.array(hardlimits)
 
         self.xyLock = threading.Lock()
         print (self.softlimits)
@@ -369,11 +353,9 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
         ## Maps cockpit axis ordering to a +-1 multiplier to apply to motion,
         # since some of our axes are flipped.
         self.axisSignMapper = {0: -1, 1: 1}
-
+        #event subscriptions. 
         events.subscribe('program exit', self.onExit)
         events.subscribe('user abort', self.onAbort)
-#        events.subscribe('macro stage xy draw', self.onMacroStagePaint)
-
         
     def initialize(self):
         # Get the proper initial position.
@@ -381,11 +363,11 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
 
 
     def getHandlers(self):
-        # Note we leave control of the Z axis to the DSP; only the XY
-        # stage movers get handlers here.
+        # Only the XY stage movers get handlers here.
         result = []
         hardlimits=self.get_hard_limits()
         print (hardlimits)
+        #generate handler for the x and then y axis.
         for axis, minPos, maxPos in [(0, int(hardlimits[0][0]),
                                       int(hardlimits[1][0])),
                     (1, int(hardlimits[0][1]),
@@ -404,35 +386,40 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
     #TODO needs to be implemented
     def setXYSafety(self):
         pass
-             
+
+    #launch a separate thread for moves to provide display updates
+    #during move as only one move cmmand can be launched at once.
+    @cockpit.util.threads.callInNewThread         
     def moveXYAbsolute(self,axis, pos):
         with self.xyLock:
             if self.xyMotionTargets[axis] is not None:
                 # Don't stack motion commands for the same axis
                 return
-        self.xyMotionTargets[axis] = pos
-#        if not self.isMotionSafe(axis):
-#            self.xyMotionTargets[axis] = None
-#            raise RuntimeError("Moving axis %d to %s would pass through unsafe zone" % (axis, pos))
-        print (axis, self.axisMapper[axis])
-        self._proxy.move_abs(self.axisMapper[axis],
-                             self.axisSignMapper[axis] * pos )
-        self.sendXYPositionUpdates()
-
+            self.xyMotionTargets[axis] = pos
+            while(self.get_is_moving()):
+                #delay so we dont spam slow serial connections. 
+                time.sleep(0.1)
+            self._proxy.move_abs(self.axisMapper[axis],
+                                 self.axisSignMapper[axis] * pos )
+            self.sendXYPositionUpdates()
+        
+    @cockpit.util.threads.callInNewThread
     def moveXYRelative(self, axis, delta):
         if not delta:
             # Received a bogus motion request.
             return
-        curPos = self.xyPositionCache[axis]
-        self.xyMotionTargets[axis] = curPos+delta
-        self._proxy.move_abs(self.axisMapper[axis],axisSignMapper[axis]*(curPos + delta))
-        self.sendXYPositionUpdates()
+        with self.xyLock:
+            curPos = self.xyPositionCache[axis]
+            self.xyMotionTargets[axis] = curPos+delta
+            while(self.get_is_moving()):
+                time.sleep(0.1)
+            self._proxy.move_abs(self.axisMapper[axis],self.axisSignMapper[axis]*(curPos + delta))
+            self.sendXYPositionUpdates()
         
 
     def getXYPosition(self, axis = None, shouldUseCache = True):
         if not shouldUseCache:
             pos = self._proxy.get_position()
-            # Positions are in millimeters, and we need microns.
             x = float(pos[self.axisMapper[0]]) * self.axisSignMapper[0]
             y = float(pos[self.axisMapper[1]]) * self.axisSignMapper[1]
             self.xyPositionCache = (x, y)
@@ -451,6 +438,15 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
 
     def get_status(self):
         return(self._proxy.get_status())
+
+    def get_is_moving(self):
+        if self._proxy.get_is_moving():
+            return True
+        else:
+            return False
+
+    def get_hard_limits(self):
+        return(self._proxy.get_hard_limits())
         
     ## Send updates on the XY stage's position, until it stops moving.
     @cockpit.util.threads.callInNewThread
@@ -459,7 +455,7 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
             prevX, prevY = self.xyPositionCache
             x, y = self.getXYPosition(shouldUseCache = False)
             delta = abs(x - prevX) + abs(y - prevY)
-            if delta < 5.:
+            if delta < 5:
                 # No movement since last time; done moving.
                 for axis in [0, 1]:
                     events.publish('stage stopped', '%d %s' % (axis,self.name))
@@ -471,6 +467,3 @@ class MicroscopeXYStage(MicroscopeBase, stage.StageDevice):
                         self.axisSignMapper[axis] * val)
             curPosition = (x, y)
             time.sleep(.01)
-
-    def get_hard_limits(self):
-        return(self._proxy.get_hard_limits())
