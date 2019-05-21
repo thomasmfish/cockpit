@@ -158,7 +158,11 @@ class MosaicCanvas(wx.glcanvas.GLCanvas):
         # Arrays run [0,0] .. [ncols, nrows]; GL runs (-1,-1) .. (1,1). Since
         # making adjustments to render [0,0] at (-1,1), we now add two megatiles
         # at each y limit, rather than 4 at one edge.
-        MegaTile.setPixelSize(glGetInteger(GL_MAX_TEXTURE_SIZE))
+        #print(glGetInteger(GL_MAX_FRAMEBUFFER_WIDTH))
+        #print(glGetInteger(GL_MAX_FRAMEBUFFER_HEIGHT))
+        print(glGetInteger(GL_MAX_TEXTURE_SIZE))
+        print(glGetString(GL_VENDOR))
+        MegaTile.setPixelSize(glGetInteger(GL_MAX_TEXTURE_SIZE)//4)
         xMin += min(0, xOffLim[0]) - MegaTile.micronSize
         xMax += max(0, xOffLim[1]) + MegaTile.micronSize
         yMin += min(0, yOffLim[0]) - 2*MegaTile.micronSize
