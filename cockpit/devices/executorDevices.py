@@ -94,13 +94,17 @@ from itertools import chain
 
 
 class ExecutorDevice(device.Device):
+    _config_types = {
+        'alines' : int,
+        'dlines' : int,
+    }
+
     def __init__(self, name, config={}):
         device.Device.__init__(self, name, config)
         ## Connection to the remote DSP computer
         self.connection = None
         ## Set of all handlers we control.
         self.handlers = set()
-
 
     ## Connect to the DSP computer.
     @cockpit.util.threads.locked
@@ -149,7 +153,8 @@ class ExecutorDevice(device.Device):
              'getAnalog': self.connection.ReadPosition,
              'setAnalog': self.connection.MoveAbsolute,
              },
-            dlines=16, alines=4)
+            dlines=self.config.get('dlines', 16),
+            alines=self.config.get('alines', 4))
 
         result.append(h)
 
@@ -184,8 +189,7 @@ class ExecutorDevice(device.Device):
 
     ## Actually execute the events in an experiment ActionTable, starting at
     # startIndex and proceeding up to but not through stopIndex.
-    def executeTable(self, name, table, startIndex, stopIndex, numReps, 
-            repDuration):
+    def executeTable(self, table, startIndex, stopIndex, numReps, repDuration):
 
         actions = actions_from_table(table, startIndex, stopIndex, repDuration)
 
@@ -279,8 +283,7 @@ class LegacyDSP(ExecutorDevice):
 
     ## Actually execute the events in an experiment ActionTable, starting at
     # startIndex and proceeding up to but not through stopIndex.
-    def executeTable(self, name, table, startIndex, stopIndex, numReps,
-            repDuration):
+    def executeTable(self, table, startIndex, stopIndex, numReps, repDuration):
         # Take time and arguments (i.e. omit handler) from table to generate actions.
         # For the UCSF m6x DSP device, we also need to:
         #  - make the analogue values offsets from the current position;
@@ -383,7 +386,7 @@ def actions_from_table(table, startIndex, stopIndex, repDuration):
     ## Take time and arguments (i.e. omit handler) from table to
     ## generate actions.
     t0 = float(table[startIndex][0])
-    actions = [(float(row[0])-t0,) + tuple(row[2:])
+    actions = [(float(row[0])-t0,) + tuple(row[1:])
                for row in table[startIndex:stopIndex]]
 
     ## If there are repeats, add an extra action to wait until

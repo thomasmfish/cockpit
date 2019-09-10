@@ -28,7 +28,6 @@ import decimal
 import Pyro4
 import wx
 
-from . import camera
 from cockpit import depot
 import numpy as np
 from cockpit import events
@@ -36,21 +35,25 @@ import cockpit.gui.device
 import cockpit.gui.guiUtils
 import cockpit.handlers.camera
 import cockpit.util.listener
+import cockpit.util.logger
 import cockpit.util.threads
 import cockpit.util.userConfig
 from cockpit.devices.microscopeDevice import MicroscopeBase
+from cockpit.devices.camera import CameraDevice
 from cockpit.interfaces.imager import pauseVideo
+from microscope.devices import ROI, Binning
 
 # The following must be defined as in handlers/camera.py
 (TRIGGER_AFTER, TRIGGER_BEFORE, TRIGGER_DURATION, TRIGGER_SOFT) = range(4)
 # Pseudo-enum to track whether device defaults in place.
 (DEFAULTS_NONE, DEFAULTS_PENDING, DEFAULTS_SENT) = range(3)
 
-class MicroscopeCamera(MicroscopeBase, camera.CameraDevice):
+
+class MicroscopeCamera(MicroscopeBase, CameraDevice):
     """A class to control remote python microscope cameras."""
     def __init__(self, name, cam_config):
         # camConfig is a dict with containing configuration parameters.
-        super(self.__class__, self).__init__(name, cam_config)
+        super().__init__(name, cam_config)
         self.handler = None
         self.enabled = False
         self.panel = None
@@ -245,7 +248,13 @@ class MicroscopeCamera(MicroscopeBase, camera.CameraDevice):
     def getImageSize(self, name):
         """Read the image size from the camera."""
         roi = self.proxy.get_roi()  # left, bottom, right, top
+        if not isinstance(roi, ROI):
+            cockpit.util.logger.log.warning("%s returned tuple not ROI()" % self.name)
+            roi = ROI(*roi)
         binning = self.proxy.get_binning()
+        if not isinstance(binning, Binning):
+            cockpit.util.logger.log.warning("%s returned tuple not Binning()" % self.name)
+            binning = Binning(*binning)
         return (roi.width//binning.h, roi.height//binning.v)
 
 

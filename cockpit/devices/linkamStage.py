@@ -171,10 +171,15 @@ class LinkamStage(MicroscopeBase, stage.StageDevice):
         ## Keys for status items that should be logged
         self.logger = valueLogger.ValueLogger(name, keys=list(map('t_'.__add__, self._temperature_names)))
         try:
-            xlim = self._proxy.get_value_limits('MotorSetPointX')
-            ylim = self._proxy.get_value_limits('MotorSetPointY')
+            xlim = self._proxy.get_value_limits('MotorSetpointX')
+            ylim = self._proxy.get_value_limits('MotorSetpointY')
         except:
             xlim, ylim = zip(*DEFAULT_LIMITS)
+        # _proxy may return (0,0) if it can't query the hardware.
+        if not any (xlim):
+            xlim, _ = zip(*DEFAULT_LIMITS)
+        if not any (ylim):
+            _, ylim = zip(*DEFAULT_LIMITS)
         self.hardlimits = tuple(zip(xlim, ylim))
         self.softlimits = self.hardlimits
         if not self.getPrimitives():
