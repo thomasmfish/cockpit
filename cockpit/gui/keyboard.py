@@ -109,7 +109,7 @@ def onChar(evt):
         cockpit.interfaces.stageMover.changeStepSize(1)
     elif evt.KeyCode in [wx.WXK_NUMPAD_ADD, wx.WXK_NUMPAD0]:
         # Take image
-        cockpit.interfaces.imager.takeImage()
+        cockpit.interfaces.imager.takeImage(shouldBlock=True)
     else:
         evt.Skip()
 

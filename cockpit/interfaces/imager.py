@@ -147,6 +147,7 @@ class Imager:
         if shouldStopVideo:
             self.stopVideo()
         waitTime = self.getNextImageTime() - time.time()
+        print (waitTime,shouldBlock)
         if waitTime > 0:
             if shouldBlock:
                 time.sleep(waitTime)
@@ -208,7 +209,8 @@ class Imager:
     ## Get the next time it's safe to call takeImage(), based on the
     # cameras' time between images and the light sources' exposure times.
     def getNextImageTime(self):
-        camLimiter = 0
+        camLimiter = 500
+
         for camera in self.activeCameras:
             camLimiter = max(camLimiter, camera.getTimeBetweenExposures())
         lightLimiter = 0
