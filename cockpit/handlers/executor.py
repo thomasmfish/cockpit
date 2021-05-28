@@ -85,7 +85,7 @@ class ExecutorHandler(DeviceHandler):
         # Note that even though this device is directly involved in running
         # experiments, it is never itself a part of an experiment, so 
         # we pass False for isEligibleForExperiments here.
-        deviceHandler.DeviceHandler.__init__(self, name, groupName, False,
+        DeviceHandler.__init__(self, name, groupName, False,
                 callbacks, depot.EXECUTOR)
         # Base class contains empty dicts used by mixins so that methods like
         # getNumRunnableLines can be implemented here for all mixin combos. This
@@ -427,7 +427,7 @@ class AnalogLineHandler(GenericPositionerHandler):
             self.callbacks['getMovementTime'] = lambda *args: (movementTimeFunc, 0)
         else:
             self.callbacks['getMovementTime'] = lambda *args: (0, 0)
-        deviceHandler.DeviceHandler.__init__(self, name, groupName, True,
+        DeviceHandler.__init__(self, name, groupName, True,
                                              self.callbacks, depot.GENERIC_POSITIONER)
 
     def savePosition(self):
@@ -571,15 +571,14 @@ class ExecutorDebugWindow(wx.Frame):
                                 # If dealing with ADUs, float should perhaps be int,
                                 # but rely on device to set correct type.
                 anaSizer.Add(control, 0, wx.RIGHT, 20)
-
-            btn = wx.Button(self, label="Display last experiment")
+            btn = wx.Button(panel, -1, label="Plot last experiment")
             btn.SetToolTip(wx.ToolTip(
                 "Plot the last experiment like an oscilloscope display."
             ))
             btn.Bind(wx.EVT_BUTTON, self._OnDisplayLastExperiment)
-            anaSizer.Add(btn, 0, wx.RIGHT, 20)
+            anaSizer.Add(btn, 0, wx.EXPAND,20)
             mainSizer.Add(anaSizer)
-
+            
         panel.SetSizerAndFit(mainSizer)
         self.SetClientSize(panel.GetSize())
 
