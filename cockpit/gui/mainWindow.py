@@ -538,8 +538,7 @@ class MainWindow(wx.Frame):
         objects have been destroyed already.
         """
         if not event.CanVeto():
-            for w in wx.GetTopLevelWindows():
-                MainWindow.destroyAllWindows()
+            MainWindow.destroyAllWindows()
         else:
             wx.GetApp()._SaveWindowPositions()
             MainWindow.destroyAllWindows()
