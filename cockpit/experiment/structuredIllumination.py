@@ -630,3 +630,13 @@ class ExperimentUI(BaseSIMExperimentUI):
             'shouldOnlyDoOneAngle': self.shouldOnlyDoOneAngle.GetValue(),
         })
         return all_settings
+
+    def lastMinuteActions(self):
+        if self.sliceHeight != 0.125:
+            warning = "Slice height must be 0.125 for softWoRx 3D " \
+                      "reconstruction. Choose:" \
+                      "\n    'OK' to run as is;" \
+                      "\n    'Cancel' to go back and change parameters."
+            if not guiUtils.getUserPermission(warning):
+                return False
+        return True
