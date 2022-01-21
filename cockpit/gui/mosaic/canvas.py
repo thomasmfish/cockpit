@@ -538,7 +538,6 @@ class MosaicCanvas(wx.glcanvas.GLCanvas):
         statusDialog = wx.ProgressDialog(parent = self.GetParent(),
                 title = "Loading...",
                 message = "Loading mosaic image data...")
-        statusDialog.Show()
         if doc.imageArray.shape[2] > len(tileStats):
             # More images in the file than we have stats for.
             cockpit.util.logger.log.warning("Loading mosaic with %d images; only have positioning information for %d." % (doc.imageArray.shape[2], len(tileStats)))
