@@ -99,6 +99,7 @@ from OpenGL.GL import (
     glTexParameterf,
     glTexParameteri,
     glVertex2f,
+    platform
 )
 import wx
 
@@ -114,6 +115,7 @@ _FONT_PATH = pkg_resources.resource_filename(
 
 class _Glyph:
     def __init__(self, face: freetype.Face, char: str) -> None:
+        self.allocated = False
         if face.load_char(char,freetype.FT_LOAD_RENDER):
             raise RuntimeError('failed to load char \'%s\'' % char)
         glyph = face.glyph
@@ -147,6 +149,23 @@ class _Glyph:
                      GL_ALPHA, GL_UNSIGNED_BYTE, numpy.flipud(data))
 
         glPopClientAttrib()
+        self.allocated = True
+    
+    def __del__(self):
+        self.release()
+
+    def release(self) -> None:
+        """Delete associated textures.
+
+        We need to use this instead of ``__del__`` because by the time
+        the finaliser is called the GLContext might already have been
+        destroyed.
+
+        """
+        if platform.GetCurrentContext() and self.allocated:
+            self.allocated = False
+            glDeleteTextures([self._texture_id])
+
 
     @property
     def advance(self) -> numpy.ndarray:
@@ -193,6 +212,7 @@ class Face:
     def _OnWindowDestroy(self, event: wx.WindowDestroyEvent) -> None:
         while self._glyphs:
             char_glyph = self._glyphs.popitem()
+            char_glyph[1].release()
         event.Skip()
 
     def render(self, text: str) -> None:
