@@ -55,6 +55,7 @@ to get FTGL installed (see issue #615).
 import freetype
 import numpy
 import pkg_resources
+from threading import Lock
 from OpenGL.GL import (
     GL_ALPHA,
     GL_BLEND,
@@ -112,9 +113,9 @@ _FONT_PATH = pkg_resources.resource_filename(
     'resources/fonts/UniversalisADFStd-Regular.otf'
 )
 
-
 class _Glyph:
     def __init__(self, face: freetype.Face, char: str) -> None:
+        self.lock = Lock()
         self.allocated = False
         if face.load_char(char,freetype.FT_LOAD_RENDER):
             raise RuntimeError('failed to load char \'%s\'' % char)
@@ -157,14 +158,13 @@ class _Glyph:
     def release(self) -> None:
         """Delete associated textures.
 
-        We need to use this instead of ``__del__`` because by the time
-        the finaliser is called the GLContext might already have been
-        destroyed.
-
+        First checks that context has not already been destoyed and the texture
+        has not already been deleted.
         """
-        if platform.GetCurrentContext() and self.allocated:
-            self.allocated = False
-            glDeleteTextures([self._texture_id])
+        with self.lock:
+            if platform.GetCurrentContext() and self.allocated:
+                self.allocated = False
+                glDeleteTextures([self._texture_id])
 
 
     @property
