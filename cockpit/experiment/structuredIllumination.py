@@ -357,12 +357,12 @@ class SIExperiment(experiment.Experiment):
         # the edge of the back pupil, the 1st-order spots from longer wave-
         # lengths will fall beyond the edge of the pupil. Therefore, we use the
         # longest wavelength in a given exposure to determine the SIM pattern.
-        wavelengths = set()
+        wavelengths = []
         # Using tExp rather than 'time' to avoid confusion between table event
         # times and exposure durations.
         for light, tExp in lightTimePairs:
             # SIM wavelength   
-            wavelengths.add(light.wavelength)
+            wavelengths.append(light.wavelength)
             # Bleaching compensation
             tExpNew = tExp * (1 + decimal.Decimal(self.handlerToBleachCompensation[light]) * angle)
             newPairs.append((light, tExpNew))
