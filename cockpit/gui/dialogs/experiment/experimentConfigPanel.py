@@ -362,7 +362,7 @@ class ExperimentConfigPanel(wx.Panel):
         # Get the filepath to save settings to.
         dialog = wx.FileDialog(self, style = wx.FD_SAVE, wildcard = '*.txt',
                 message = 'Please select where to save the experiment.',
-                defaultDir = cockpit.util.files.getUserSaveDir())
+                defaultDir = cockpit.util.files.getDataDir())
         if dialog.ShowModal() != wx.ID_OK:
             # User cancelled.
             return
@@ -382,7 +382,7 @@ class ExperimentConfigPanel(wx.Panel):
     def onLoadExperiment(self, event = None):
         dialog = wx.FileDialog(self, style = wx.FD_OPEN, wildcard = '*.txt',
                 message = 'Please select the experiment file to load.',
-                defaultDir = cockpit.util.files.getUserSaveDir())
+                defaultDir = cockpit.util.files.getDataDir())
         if dialog.ShowModal() != wx.ID_OK:
             # User cancelled.
             return
@@ -466,7 +466,7 @@ class ExperimentConfigPanel(wx.Panel):
             savePath = self.filepath_panel.GetPath()
         except Exception:
             cockpit.gui.ExceptionBox(
-                "Failed to get filename for data.", parent=self
+                "Failed to get filepath for data", parent=self
             )
             return True
 
@@ -522,7 +522,7 @@ class FilepathPanel(wx.Panel):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._dir_ctrl = wx.DirPickerCtrl(
-            self, path=cockpit.util.files.getUserSaveDir()
+            self, path=cockpit.util.files.getDataDir()
         )
         self._template_ctrl = wx.TextCtrl(self)
         self._template_ctrl.SetToolTip(
@@ -573,6 +573,8 @@ class FilepathPanel(wx.Panel):
         """Return full filepath to use."""
         dirname = self._dir_ctrl.GetPath()
         basename = self._fname_ctrl.GetValue()
+        if not os.path.isdir(dirname):
+            raise Exception("Specified directory does not exist")
         if not basename:
             raise Exception("Filename is empty")
         return os.path.join(dirname, basename)
