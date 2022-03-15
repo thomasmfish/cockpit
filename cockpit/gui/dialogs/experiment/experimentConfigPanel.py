@@ -575,7 +575,7 @@ class FilepathPanel(wx.Panel):
         basename = self._fname_ctrl.GetValue()
         if not os.path.isdir(dirname):
             raise Exception("Specified directory does not exist")
-        if not os.access(dirname, os.W_OK):
+        elif not os.access(dirname, os.W_OK):
             raise Exception("Unable to write to specified directory")
         if not basename:
             raise Exception("Filename is empty")
