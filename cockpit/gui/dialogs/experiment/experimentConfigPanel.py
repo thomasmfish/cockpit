@@ -577,7 +577,7 @@ class FilepathPanel(wx.Panel):
             raise Exception("Specified directory does not exist")
         elif not os.access(dirname, os.W_OK):
             raise Exception("Unable to write to specified directory")
-        if not basename:
+        elif not basename:
             raise Exception("Filename is empty")
         return os.path.join(dirname, basename)
 
