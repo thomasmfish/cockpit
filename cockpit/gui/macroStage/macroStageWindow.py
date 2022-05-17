@@ -55,6 +55,7 @@ import wx
 
 import cockpit.events
 import cockpit.gui
+from cockpit.util.exceptions import MotionError
 import cockpit.gui.dialogs.safetyMinDialog
 import cockpit.gui.keyboard
 from cockpit.gui.macroStage.macroStageXY import MacroStageXY
@@ -258,16 +259,23 @@ class SaveTopBottomPanel(wx.Panel):
         stageMover.mover.SavedBottom = float(self._bottom_ctrl.GetValue())
 
     def OnGoToTop(self, evt: wx.CommandEvent) -> None:
-        stageMover.moveZCheckMoverLimits(stageMover.mover.SavedTop)
+        self.moveZCheckMoverLimits(stageMover.mover.SavedTop)
 
     def OnGoToBottom(self, evt: wx.CommandEvent) -> None:
-        stageMover.moveZCheckMoverLimits(stageMover.mover.SavedBottom)
+        self.moveZCheckMoverLimits(stageMover.mover.SavedBottom)
 
     def OnGoToCentre(self, evt: wx.CommandEvent) -> None:
         centre = (stageMover.mover.SavedBottom
                   + ((stageMover.mover.SavedTop
                       - stageMover.mover.SavedBottom) / 2.0))
-        stageMover.moveZCheckMoverLimits(centre)
+        self.moveZCheckMoverLimits(centre)
+
+    def moveZCheckMoverLimits(self, position):
+            try:
+                stageMover.moveZCheckMoverLimits(position)
+            except MotionError as e:
+                cockpit.gui.guiUtils.warnUser(
+                    "Attempt to move stage outside limits:\n%s"%e )
 
 
 ## This class simply contains instances of the various MacroStage
@@ -357,7 +365,11 @@ class MacroStagePanel(wx.Panel):
 
     def OnTouchDown(self, ect: wx.CommandEvent) -> None:
         zpos = wx.GetApp().Config['stage'].getfloat('slideTouchdownAltitude')
-        stageMover.goToZ(zpos)
+        try:
+            stageMover.goToZ(zpos)
+        except MotionError as e:
+            cockpit.gui.guiUtils.warnUser(
+                "Attempt to move stage outside limits:\n%s"%e )
 
 
 class MacroStageWindow(wx.Frame):
