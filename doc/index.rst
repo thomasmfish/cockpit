@@ -17,7 +17,9 @@ Microscope-Cockpit
    install
    getting-started
    config
+   depot-config
    architecture
+   computer-os-selection
    file-format
    troubleshoot
 
@@ -41,7 +43,7 @@ microscopes. Its main features are:
 - Cockpit is free and open source software, released under the GPL.
 
 A more detailed description is available in the `associated
-publication <https://doi.org/10.12688/wellcomeopenres.16610.1>`__.
+publication <https://doi.org/10.12688/wellcomeopenres.16610.2>`__.
 
 The User Interface
 ==================
