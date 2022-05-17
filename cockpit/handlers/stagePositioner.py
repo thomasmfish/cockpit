@@ -53,7 +53,7 @@ from cockpit import depot
 from cockpit.handlers import deviceHandler
 from cockpit import events
 import time
-
+from cockpit.util.exceptions import MotionError
 
 ## This handler is for stage positioner devices.
 class PositionerHandler(deviceHandler.DeviceHandler):
@@ -97,7 +97,7 @@ class PositionerHandler(deviceHandler.DeviceHandler):
         if self.softLimits[0] <= pos <= self.softLimits[1]:
             self.callbacks['moveAbsolute'](self.axis, pos)
         else:
-            raise RuntimeError("Tried to move %s " % (self.name) +
+            raise MotionError("Tried to move %s " % (self.name) +
                     "outside soft motion limits (target %.2f, limits [%.2f, %.2f])" %
                     (pos, self.softLimits[0], self.softLimits[1]))
 
@@ -108,7 +108,7 @@ class PositionerHandler(deviceHandler.DeviceHandler):
         if self.softLimits[0] <= target <= self.softLimits[1]:
             self.callbacks['moveRelative'](self.axis, delta)
         else:
-            raise RuntimeError("Tried to move %s " % (self.name) +
+            raise MotionError("Tried to move %s " % (self.name) +
                     "outside soft motion limits (target %.2f, limits [%.2f, %.2f])" %
                     (target, self.softLimits[0], self.softLimits[1]))
 
