@@ -57,6 +57,7 @@ import typing
 from cockpit import depot
 from cockpit import events
 from cockpit.util import userConfig
+from cockpit.util.exceptions import MotionError
 
 import numpy
 import threading
@@ -635,7 +636,7 @@ def moveZCheckMoverLimits(target):
             # need to drop down a handler to see if next handler can do the move
             mover.curHandlerIndex -= 1
             if mover.curHandlerIndex < 0:
-                print ("Move too large for any Z mover.")
+                raise MotionError ("Move too large for any Z mover.")
 
         else:
             goToZ(target)
