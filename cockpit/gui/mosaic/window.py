@@ -120,8 +120,14 @@ class MosaicCommon:
     def goTo(self, target, shouldBlock=False):
         if self.focalPlaneParams:
             targetZ = self.getFocusZ(target)
-            cockpit.interfaces.stageMover.goTo((target[0], target[1], targetZ),
-                                               shouldBlock)
+            try:
+                cockpit.interfaces.stageMover.goTo((target[0], target[1],
+                                                    targetZ),
+                                                   shouldBlock)
+            except  MotionError as e:
+                cockpit.gui.guiUtils.warnUser(
+                        "Attempt to move stage outside limits:\n%s"%e )
+                self.shouldContinue.clear()
         else:
             # IMD 20150306 Save current mover, change to coarse to generate mosaic
             # do move, and change mover back.
