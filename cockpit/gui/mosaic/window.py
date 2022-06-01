@@ -76,7 +76,7 @@ from cockpit import depot
 from cockpit import events
 from cockpit.gui.mosaic import canvas
 from cockpit.gui.primitive import Primitive
-
+from cockpit.util.exceptions import MotionError
 
 ## Valid colors to use for site markers.
 SITE_COLORS = [('green', (0, 1, 0)), ('red', (1, 0, 0)),
@@ -120,14 +120,25 @@ class MosaicCommon:
     def goTo(self, target, shouldBlock=False):
         if self.focalPlaneParams:
             targetZ = self.getFocusZ(target)
-            cockpit.interfaces.stageMover.goTo((target[0], target[1], targetZ),
-                                               shouldBlock)
+            try:
+                cockpit.interfaces.stageMover.goTo((target[0], target[1],
+                                                    targetZ),
+                                                   shouldBlock)
+            except  MotionError as e:
+                cockpit.gui.guiUtils.warnUser(
+                        "Attempt to move stage outside limits:\n%s"%e )
+                self.shouldContinue.clear()
         else:
             # IMD 20150306 Save current mover, change to coarse to generate mosaic
             # do move, and change mover back.
             originalMover = cockpit.interfaces.stageMover.mover.curHandlerIndex
             cockpit.interfaces.stageMover.mover.curHandlerIndex = 0
-            cockpit.interfaces.stageMover.goToXY(target, shouldBlock)
+            try:
+                cockpit.interfaces.stageMover.goToXY(target, shouldBlock)
+            except  MotionError as e:
+                cockpit.gui.guiUtils.warnUser(
+                        "Attempt to move stage outside limits:\n%s"%e )
+                self.shouldContinue.clear()
             cockpit.interfaces.stageMover.mover.curHandlerIndex = originalMover
 
 
@@ -784,13 +795,7 @@ class MosaicWindow(wx.Frame, MosaicCommon):
             dx, dy = next(stepper)
             target = (centerX + self.offset[0] + dx * width,
                       centerY - self.offset[1] + dy * height)
-            try:
-                self.goTo(target, True)
-            except Exception as e:
-                self.shouldContinue.clear()
-                stderr.write("Mosaic stopping - problem in target calculation: %s\n" % str(e))
-                continue
-
+            self.goTo(target, True)
 
     ## Display dialogue box to set tile overlap.
     def setTileOverlap(self):

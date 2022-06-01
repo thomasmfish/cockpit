@@ -62,6 +62,7 @@ import cockpit.gui.dialogs.getNumberDialog
 import cockpit.interfaces
 import cockpit.interfaces.stageMover
 import cockpit.util.logger
+from cockpit.util.exceptions import MotionError
 
 from cockpit.gui.macroStage import macroStageBase
 
@@ -470,8 +471,12 @@ class MacroStageXY(macroStageBase.MacroStageBase):
         #properly.  Should really check to see if we can move, and by that
         #distance with exisiting mover
         cockpit.interfaces.stageMover.mover.curHandlerIndex = 0
+        try:
+            cockpit.interfaces.stageMover.goToXY(self.remapClick(event.GetPosition()))
+        except MotionError as e:
+            cockpit.gui.guiUtils.warnUser(
+                "Attempt to move stage outside limits:\n%s"%e )
 
-        cockpit.interfaces.stageMover.goToXY(self.remapClick(event.GetPosition()))
 
         #make sure we are back to the expected mover
         cockpit.interfaces.stageMover.mover.curHandlerIndex = originalMover

@@ -53,8 +53,9 @@ import wx
 
 import cockpit.gui.camera.window
 import cockpit.gui.mosaic.window
+import cockpit.gui.guiUtils
 import cockpit.interfaces.stageMover
-
+from cockpit.util.exceptions import MotionError
 
 def onChar(evt):
     if isinstance(evt.EventObject, wx.TextCtrl) \
@@ -75,29 +76,29 @@ def onChar(evt):
         cockpit.interfaces.stageMover.recenterFineMotion()
     elif evt.KeyCode == wx.WXK_DOWN:
         # Z down
-        cockpit.interfaces.stageMover.step((0,0,-1))
+        stagestep((0,0,-1))
     elif evt.KeyCode == wx.WXK_NUMPAD2:
         # Y down
-        cockpit.interfaces.stageMover.step((0, -1, 0))
+        stagestep((0, -1, 0))
     elif evt.KeyCode == wx.WXK_NUMPAD3:
         # Decrease delta
         cockpit.interfaces.stageMover.changeStepSize(-1)
     elif evt.KeyCode == wx.WXK_NUMPAD4:
         # X up
-        cockpit.interfaces.stageMover.step((1, 0, 0))
+        stagestep((1, 0, 0))
     elif evt.KeyCode == wx.WXK_NUMPAD5:
         # Stop motion
         # TODO: was never handled.
         pass
     elif evt.KeyCode == wx.WXK_NUMPAD6:
         # X down
-        cockpit.interfaces.stageMover.step((-1, 0, 0))
+        stagestep((-1, 0, 0))
     elif evt.KeyCode == wx.WXK_UP:
         # Z up
-        cockpit.interfaces.stageMover.step((0, 0, 1))
+        stagestep((0, 0, 1))
     elif evt.KeyCode == wx.WXK_NUMPAD8:
         # Y up
-        cockpit.interfaces.stageMover.step((0, 1, 0))
+        stagestep((0, 1, 0))
     elif evt.KeyCode == wx.WXK_NUMPAD9:
         # Increase delta
         cockpit.interfaces.stageMover.changeStepSize(1)
@@ -127,3 +128,11 @@ def showHideShell(parent):
         if window.GetTitle() == 'PyShell':
             window.Show(not window.IsShown())
             break
+
+#wrapper to trap MotionError exceptions.
+def stagestep(step):
+    try:
+        cockpit.interfaces.stageMover.step(step)
+    except MotionError as e:
+        cockpit.gui.guiUtils.warnUser(
+            "Attempt to move stage outside limits:\n%s"%e )

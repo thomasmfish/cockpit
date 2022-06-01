@@ -578,7 +578,9 @@ class MacroStageZ(macroStageBase.MacroStageBase):
             weight = 1. - float(clickLoc[1]) / height
             altitude = (scale[1] - scale[0]) * weight + scale[0]
             zHardMax = cockpit.interfaces.stageMover.getIndividualHardLimits(2)[0][1]
-            cockpit.interfaces.stageMover.goToZ(min(zHardMax, altitude))
+            zHardMin = cockpit.interfaces.stageMover.getIndividualHardLimits(2)[0][0]
+            cockpit.interfaces.stageMover.goToZ(max(zHardMin,min(
+                zHardMax, altitude)))
             #make sure we are back to the expected mover
             cockpit.interfaces.stageMover.mover.curHandlerIndex = originalMover
 

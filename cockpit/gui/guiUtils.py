@@ -317,3 +317,9 @@ def tryParseNum(control, convertFunc = int, default = 0):
         return convertFunc(control.GetValue())
     except:
         return default
+
+## Pop up a warning dialog, with no cancel option.
+def warnUser(text, title = 'Warning'):
+    response = wx.MessageDialog(None, text, title, 
+             wx.OK | wx.STAY_ON_TOP | wx.ICON_EXCLAMATION).ShowModal()
+    return response == wx.ID_OK
