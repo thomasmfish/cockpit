@@ -68,12 +68,9 @@ class ShutterDevice(device.Device):
 
 
     def onLightSourceEnable(self, handler, enab):
-        if enab and handler in self.lights:
-            # One of our lights has been enabled.  Make sure that we respond to triggers.
-            self.enableTrigger()
-        elif not enab and not any([l.getIsEnabled() for l in self.lights]):
-            # All of our lights are disabled.
-            self.enableTrigger(False)
+        if handler in self.lights and enab == any([l.getIsEnabled() for l in self.lights]):
+            # All of our lights are disabled or any is enabled
+            self.enableTrigger(enab)
 
 
     def setExposureTime(self, t):
