@@ -367,14 +367,13 @@ class ExperimentConfigPanel(wx.Panel):
             # User cancelled.
             return
         filepath = dialog.GetPath()
-        handle = open(filepath, 'w')
-        try:
-            handle.write(json.dumps(settings))
-        except Exception as e:
-            cockpit.util.logger.log.error("Couldn't save experiment settings: %s" % e)
-            cockpit.util.logger.log.error(traceback.format_exc())
-            cockpit.util.logger.log.error("Settings are:\n%s" % str(settings))
-        handle.close()
+        with open(filepath, 'w') as handle:
+            try:
+                handle.write(json.dumps(settings))
+            except Exception as e:
+                cockpit.util.logger.log.error("Couldn't save experiment settings: %s" % e)
+                cockpit.util.logger.log.error(traceback.format_exc())
+                cockpit.util.logger.log.error("Settings are:\n%s" % str(settings))
         
 
     ## User clicked the "Load experiment settings..." button; load the
@@ -387,9 +386,8 @@ class ExperimentConfigPanel(wx.Panel):
             # User cancelled.
             return
         filepath = dialog.GetPath()
-        handle = open(filepath, 'r')
-        settings = json.loads(' '.join(handle.readlines()))
-        handle.close()
+        with open(filepath, 'r') as handle:
+            settings = json.loads(' '.join(handle.readlines()))
         experimentType = settings['experimentType']
         experimentIndex = self.experimentType.FindString(experimentType)
         module = self.experimentStringToModule[experimentType]
