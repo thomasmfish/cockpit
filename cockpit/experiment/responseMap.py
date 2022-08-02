@@ -201,12 +201,11 @@ class ResponseMapExperiment(offsetGainCorrection.OffsetGainCorrectionExperiment)
         # we use a 32-bit floating point for the exposure time.
         header.next = 4 * numCams * numTimes
         header.NumFloats = 1
-        handle = open(self.savePath, 'wb')
-        handle.write(header._array.tostring())
-        exposureTimes = numpy.array(exposureTimes, dtype = numpy.float32)
-        handle.write(exposureTimes)
-        handle.write(allImages)
-        handle.close()
+        with open(self.savePath, 'wb') as handle:
+            handle.write(header._array.tostring())
+            exposureTimes = numpy.array(exposureTimes, dtype = numpy.float32)
+            handle.write(exposureTimes)
+            handle.write(allImages)
 
 
     ## Demonstrate our results to the user in a number of ways.

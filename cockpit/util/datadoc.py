@@ -544,10 +544,9 @@ class DataDoc:
 
     ## Just save our array to the specified file.
     def saveTo(self, savePath):
-        filehandle = open(savePath, 'wb')
-        writeMrcHeader(self.imageHeader, filehandle)
-        filehandle.write(self.imageArray)
-        filehandle.close()
+        with open(savePath, 'wb') as filehandle:
+            writeMrcHeader(self.imageHeader, filehandle)
+            filehandle.write(self.imageArray)
 
 
     ## Get the size of a slice in the specified dimensions. Dimensions are as
@@ -694,11 +693,10 @@ def writeDataAsMrc(data, filename, XYSize = None, ZSize = None, wavelengths = []
     data_out = data.reshape(shape)
     header = makeHeaderFor(data_out, XYSize = XYSize, ZSize = ZSize,
                            wavelengths = wavelengths,zxy0=zxy0)
-    handle = open(filename, 'wb')
-    writeMrcHeader(header, handle)
-    handle.seek(1024) # Seek to end of header
-    data_out.tofile(handle)
-    handle.close()
+    with open(filename, 'wb') as handle:
+        writeMrcHeader(header, handle)
+        handle.seek(1024) # Seek to end of header
+        data_out.tofile(handle)
 
 
 ## Given a buffer of memory that contains the extended header, and the

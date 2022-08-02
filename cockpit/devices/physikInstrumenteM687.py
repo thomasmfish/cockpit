@@ -480,21 +480,20 @@ class PhysikInstrumenteM687(Device):
             output = self.xyConnection.read(100)
             lines += output
         lines = lines.split(b'\n')
-        handle = open('params.txt', 'w')
-        for line in lines:
-            if b'0x' in line:
-                # Parameter line
-                param = line.split(b'=')[0]
-                desc = line.split(b'\t')[5]
-                for axis in (1, 2):
-                    val = self.sendXYCommand(b'SPA? %d %s' % (axis, param))
-                    # Note val has a newline at the end here.
-                    handle.write("%s (%s): %s" % (desc, param, val.decode()))
-            else:
-                # Lines at the beginning/end don't have parameters in them.
-                handle.write(line)
-        handle.write(b'\n\n')
-        handle.close()
+        with open('params.txt', 'w') as handle:
+            for line in lines:
+                if b'0x' in line:
+                    # Parameter line
+                    param = line.split(b'=')[0]
+                    desc = line.split(b'\t')[5]
+                    for axis in (1, 2):
+                        val = self.sendXYCommand(b'SPA? %d %s' % (axis, param))
+                        # Note val has a newline at the end here.
+                        handle.write("%s (%s): %s" % (desc, param, val.decode()))
+                else:
+                    # Lines at the beginning/end don't have parameters in them.
+                    handle.write(line)
+            handle.write(b'\n\n')
 
 
     ## Debugging function: test doBoxesIntersect().

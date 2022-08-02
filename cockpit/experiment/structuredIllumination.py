@@ -464,16 +464,15 @@ class SIExperiment(experiment.Experiment):
 
         ## Save to a new file, reusing the original base header since
         ## we don't actually changed anything there.
-        tmp_fh = tempfile.NamedTemporaryFile(delete=False)
-        cockpit.util.datadoc.writeMrcHeader(doc.imageHeader, tmp_fh)
-        ## Make sure the data is actually ordered for writing,
-        ## otherwise at this point the arrays might be making use of
-        ## views.
-        ext_header = numpy.ascontiguousarray(ext_header)
-        img_data = numpy.ascontiguousarray(img_data)
-        tmp_fh.write(ext_header)
-        tmp_fh.write(img_data)
-        tmp_fh.close()
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_fh:
+            cockpit.util.datadoc.writeMrcHeader(doc.imageHeader, tmp_fh)
+            ## Make sure the data is actually ordered for writing,
+            ## otherwise at this point the arrays might be making use of
+            ## views.
+            ext_header = numpy.ascontiguousarray(ext_header)
+            img_data = numpy.ascontiguousarray(img_data)
+            tmp_fh.write(ext_header)
+            tmp_fh.write(img_data)
 
         ## We are going to swap the files now, so destroy the old
         ## datadoc which memmaps the old file or we won't be able to

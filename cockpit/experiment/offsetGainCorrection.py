@@ -210,10 +210,9 @@ class OffsetGainCorrectionExperiment(experiment.Experiment):
                 XYSize = pixel_size, ZSize = 0, 
                 wavelengths = wavelengths)
 
-        filehandle = open(self.savePath, 'wb')
-        cockpit.util.datadoc.writeMrcHeader(header, filehandle)
-        filehandle.write(results)
-        filehandle.close()
+        with open(self.savePath, 'wb') as filehandle:
+            cockpit.util.datadoc.writeMrcHeader(header, filehandle)
+            filehandle.write(results)
 
         self.cleanup()
         

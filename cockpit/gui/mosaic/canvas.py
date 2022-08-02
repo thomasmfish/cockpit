@@ -475,28 +475,27 @@ class MosaicCanvas(wx.glcanvas.GLCanvas):
                 maximum=len(self.tiles),
             ),
         )
-        handle = open(savePath, 'w')
-        mrcPath = savePath + '.mrc'
-        if '.txt' in savePath:
-            mrcPath = savePath.replace('.txt', '.mrc')
-        handle.write("%s\n" % mrcPath)
-        width = 0
-        height = 0
-        for tile in self.tiles:
-            width = max(width, tile.textureData.shape[0])
-            height = max(height, tile.textureData.shape[1])
-            # We do this by a series of extensions since some of these lists
-            # may be Numpy arrays, which don't do array extension when you
-            # "add" them.
-            values = []
-            values.extend(tile.pos)
-            values.extend(tile.size)
-            values.extend(tile.textureData.shape)
-            values.extend(tile.histogramScale)
-            values.append(tile.layer)
-            values = map(str, values)
-            handle.write(','.join(values) + '\n')
-        handle.close()
+        with open(savePath, 'w') as handle:
+            mrcPath = savePath + '.mrc'
+            if '.txt' in savePath:
+                mrcPath = savePath.replace('.txt', '.mrc')
+            handle.write("%s\n" % mrcPath)
+            width = 0
+            height = 0
+            for tile in self.tiles:
+                width = max(width, tile.textureData.shape[0])
+                height = max(height, tile.textureData.shape[1])
+                # We do this by a series of extensions since some of these lists
+                # may be Numpy arrays, which don't do array extension when you
+                # "add" them.
+                values = []
+                values.extend(tile.pos)
+                values.extend(tile.size)
+                values.extend(tile.textureData.shape)
+                values.extend(tile.histogramScale)
+                values.append(tile.layer)
+                values = map(str, values)
+                handle.write(','.join(values) + '\n')
 
         # Now we have the max image extent in X and Y, we can pile everything
         # into a single array for saving as an MRC file. Images smaller than
@@ -507,12 +506,11 @@ class MosaicCanvas(wx.glcanvas.GLCanvas):
             imageData[0, 0, i, :tile.textureData.shape[0], :tile.textureData.shape[1]] = tile.textureData
         header = cockpit.util.datadoc.makeHeaderFor(imageData)
 
-        handle = open(mrcPath, 'wb')
-        cockpit.util.datadoc.writeMrcHeader(header, handle)
-        for i, image in enumerate(imageData[:,:]):
-            handle.write(image)
-            wx.PostEvent(self.GetEventHandler(), ProgressUpdateEvent(value=i))
-        handle.close()
+        with open(mrcPath, 'wb') as handle:
+            cockpit.util.datadoc.writeMrcHeader(header, handle)
+            for i, image in enumerate(imageData[:,:]):
+                handle.write(image)
+                wx.PostEvent(self.GetEventHandler(), ProgressUpdateEvent(value=i))
         wx.PostEvent(self.GetEventHandler(), ProgressEndEvent())
 
     ## Load a text file describing a set of tiles, as well as the tile image
