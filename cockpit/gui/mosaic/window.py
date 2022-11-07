@@ -444,8 +444,17 @@ class MosaicWindow(wx.Frame, MosaicCommon):
                                    style=wx.LB_EXTENDED|wx.LB_SORT)
         self.sitesBox.Bind(wx.EVT_LISTBOX, self.onSelectSite)
         self.sitesBox.Bind(wx.EVT_LISTBOX_DCLICK, self.onDoubleClickSite)
-        events.subscribe('new site', self.onNewSiteCreated)
-        events.subscribe('site deleted', self.onSiteDeleted)
+
+        #these are gui events so use the EvtEmitter to run in the main
+        #thread.
+        cockpit.gui.EvtEmitter(self, cockpit.events.NEW_SITE).Bind(
+            cockpit.gui.EVT_COCKPIT,
+            self._OnNewSite,
+        )
+        cockpit.gui.EvtEmitter(self, cockpit.events.DELETE_SITE).Bind(
+            cockpit.gui.EVT_COCKPIT,
+            self._OnSiteDelete,
+            )
         sitesSizer.Add(self.sitesBox, 1, wx.EXPAND)
 
         for args in [
@@ -501,6 +510,15 @@ class MosaicWindow(wx.Frame, MosaicCommon):
 
         self.mosaicThread = None
 
+        ## Dont continue mosaics if we chnage objective
+        events.subscribe('objective change', self.onObjectiveChange)
+
+    ##Objective chnage sets the shouldRestart flag so we dont
+    ##continue in the wrong place
+    def onObjectiveChange(self, objective):
+        self.shouldRestart = True
+
+        
     ## Create a button with the appropriate properties.
     def makeButton(self, parent, label, leftAction, rightAction, helpText,
             size = (-1, -1)):
@@ -846,6 +864,8 @@ class MosaicWindow(wx.Frame, MosaicCommon):
     def toggleDisplayTrails(self):
         #toggle Display of trails in mosaic.
         self.displayTrails = not self.displayTrails
+        #send a mosaic update event to update touchscreen
+        events.publish(events.MOSAIC_UPDATE)
         #store current state for future.
         cockpit.util.userConfig.setValue('mosaicDisplayTrails',self.displayTrails)
         self.Refresh()
@@ -853,6 +873,7 @@ class MosaicWindow(wx.Frame, MosaicCommon):
     def clearTrails(self):
         #clear all exisiting trails
         self.trails=[]
+        events.publish(events.MOSAIC_UPDATE)
         self.Refresh()
         
     ## Save the current stage position as a new site with the specified
@@ -1017,7 +1038,7 @@ class MosaicWindow(wx.Frame, MosaicCommon):
             # Redisplay the sites in the sitesbox.
             self.sitesBox.Clear()
             for site in cockpit.interfaces.stageMover.getAllSites():
-                self.onNewSiteCreated(site, shouldRefresh = False)
+                self._AddSiteToList(site, shouldRefresh = False)
             self.Refresh()
 
 
@@ -1042,7 +1063,12 @@ class MosaicWindow(wx.Frame, MosaicCommon):
 
 
     ## A new site was created (from any source); add it to our sites box.
-    def onNewSiteCreated(self, site, shouldRefresh = True):
+    def _OnNewSite(self, event: wx.CommandEvent) -> None:
+        site = event.EventData[0]
+        self._AddSiteToList(site, shouldRefresh=True)
+
+
+    def _AddSiteToList(self, site, shouldRefresh=True):
         # This display is a bit compressed, so that all positions are visible
         # even if there's a scrollbar in the sites box.
         position = ",".join(["%d" % p for p in site.position])
@@ -1057,7 +1083,8 @@ class MosaicWindow(wx.Frame, MosaicCommon):
 
 
     ## A site was deleted; remove it from our sites box.
-    def onSiteDeleted(self, site):
+    def _OnSiteDelete(self, event: wx.CommandEvent) -> None:
+        site = event.EventData[0]
         for item in self.sitesBox.GetItems():
             if site.uniqueID == item:
                 self.sitesBox.Delete(item)
