@@ -460,8 +460,8 @@ class SettingsEditor(wx.Frame):
             try:
                 prop = propType(label=key, name=key)
             except Exception as e:
-                sys.stderr.write("populateGrid threw exception for key %s with value %s: %s"
-                                 % (key, desc['values'], e))
+                sys.stderr.write("populateGrid threw exception for key %s: %s"
+                                 % (key, e))
             if desc['readonly']:
                 prop.Enable(False)
             grid.Append(prop)
