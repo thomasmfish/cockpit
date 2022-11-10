@@ -58,7 +58,6 @@ from cockpit import depot
 from cockpit import events
 from cockpit.util import userConfig
 from cockpit.util.exceptions import MotionError
-import cockpit.util.threads
 
 import numpy
 import threading
