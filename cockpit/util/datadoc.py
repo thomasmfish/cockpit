@@ -493,53 +493,56 @@ class DataDoc:
         newHeader.ImgSequence = 2
         newHeader.PixelType = Mrc.dtype2MrcMode(numpy.float32)
 
-        if not savePath:
-            outputArray = numpy.empty(croppedShape, numpy.float32)
-        else:
-            if self.filePath == savePath:
-                # \todo Why do we do this?
-                del self.image.Mrc
+        outputFile = None
+        try:
+            if not savePath:
+                outputArray = numpy.empty(croppedShape, numpy.float32)
+            else:
+                if self.filePath == savePath:
+                    # \todo Why do we do this?
+                    del self.image.Mrc
 
-            # Write out the header.
-            outputFile = file(savePath, 'wb')
-            outputFile.write(newHeader._array.tostring())
+                # Write out the header.
+                outputFile = open(savePath, 'wb')
+                outputFile.write(newHeader._array.tostring())
 
-        # Slices to use to crop out the 3D volume we want to use for each
-        # wave-timepoint pair.
-        volumeSlices = []
-        for min, max in zip(self.cropMin[2:], self.cropMax[2:]):
-            volumeSlices.append(slice(min, max))
+            # Slices to use to crop out the 3D volume we want to use for each
+            # wave-timepoint pair.
+            volumeSlices = []
+            for min, max in zip(self.cropMin[2:], self.cropMax[2:]):
+                volumeSlices.append(slice(min, max))
 
-        for timepoint in timepoints:
-            for waveIndex, wavelength in enumerate(wavelengths):
-                volume = self.imageArray[wavelength][timepoint]
+            for timepoint in timepoints:
+                for waveIndex, wavelength in enumerate(wavelengths):
+                    volume = self.imageArray[wavelength][timepoint]
 
-                dx, dy, dz, angle, zoom = self.alignParams[wavelength]
-                if dz and self.size[2] == 1:
-                    # HACK: no Z translate in 2D files. Even
-                    # infinitesimal translates will zero out the entire slice,
-                    # otherwise.
-                    dz = 0
-                if dx or dy or dz or angle or zoom != 1:
-                    # Transform the volume.
-                    volume = self.transformArray(
-                            volume, dx, dy, dz, angle, zoom
-                    )
-                # Crop to the desired shape.
-                volume = volume[volumeSlices].astype(numpy.float32)
+                    dx, dy, dz, angle, zoom = self.alignParams[wavelength]
+                    if dz and self.size[2] == 1:
+                        # HACK: no Z translate in 2D files. Even
+                        # infinitesimal translates will zero out the entire slice,
+                        # otherwise.
+                        dz = 0
+                    if dx or dy or dz or angle or zoom != 1:
+                        # Transform the volume.
+                        volume = self.transformArray(
+                                volume, dx, dy, dz, angle, zoom
+                        )
+                    # Crop to the desired shape.
+                    volume = volume[volumeSlices].astype(numpy.float32)
 
-                if not savePath:
-                    outputArray[timepoint, waveIndex] = volume
-                else:
-                    # Write to the file.
-                    for i, zSlice in enumerate(volume):
-                        outputFile.write(zSlice)
+                    if not savePath:
+                        outputArray[timepoint, waveIndex] = volume
+                    else:
+                        # Write to the file.
+                        for i, zSlice in enumerate(volume):
+                            outputFile.write(zSlice)
 
-        if not savePath:
-            # Reorder to WTZYX since that's what the user expects.
-            return outputArray.transpose([1, 0, 2, 3, 4])
-        else:
-            outputFile.close()
+            if not savePath:
+                # Reorder to WTZYX since that's what the user expects.
+                return outputArray.transpose([1, 0, 2, 3, 4])
+        finally:
+            if outputFile is not None:
+                outputFile.close()
 
 
     ## Just save our array to the specified file.
