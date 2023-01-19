@@ -129,7 +129,7 @@ class MicroscopeBase(device.Device):
         settings = {}
         if ss:
             settings.update(([m.groups() for kv in ss.split('\n')
-                             for m in [re.match(r'(.*)\s*[:=]\s*(.*)', kv)] if m]))
+                             for m in [re.match(r'(.*?)\s*[:=]\s*(.*?)$', kv)] if m]))
         for k,v in settings.items():
             try:
                 desc = self.describe_setting(k)
@@ -397,11 +397,11 @@ class MicroscopeFilter(MicroscopeBase):
     def setPosition(self, position, callback=None):
         asproxy = Pyro4.Proxy(self._proxy._pyroUri)
         asproxy._pyroAsync()
-        result = asproxy.set_setting('position', position).then(callback)
+        result = asproxy.set_position(position).then(callback)
 
 
     def getPosition(self):
-        return self._proxy.get_setting('position')
+        return self._proxy.get_position()
 
 
     def getFilters(self):
