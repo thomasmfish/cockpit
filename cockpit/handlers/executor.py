@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 David Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -54,7 +53,7 @@ import typing
 
 import matplotlib.pyplot as plt
 
-import collections
+import collections.abc
 from cockpit import depot
 from cockpit.handlers.deviceHandler import DeviceHandler
 from cockpit import events
@@ -168,7 +167,7 @@ class ExecutorHandler(DeviceHandler):
             if h in self.analogClients:
                 # update analog state
                 lineHandler = self.analogClients[h]
-                if isinstance(args, collections.Iterable):
+                if isinstance(args, collections.abc.Iterable):
                     # Using an indexed position
                     pos = lineHandler.indexedPosition(*args)
                 else:

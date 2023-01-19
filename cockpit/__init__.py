@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018-2019 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
-## Copyright (C) 2018 Julio Mateos Langerak <julio.mateos-langerak@igh.cnrs.fr>
-## Copyright (C) 2018 David Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 Centre National de la Recherche Scientifique (CNRS)
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -66,13 +64,6 @@ import typing
 import wx
 
 import Pyro4
-import distutils.version
-if (distutils.version.LooseVersion(Pyro4.__version__) >=
-    distutils.version.LooseVersion('4.22')):
-    Pyro4.config.SERIALIZERS_ACCEPTED.discard('serpent')
-    Pyro4.config.SERIALIZERS_ACCEPTED.add('pickle')
-    Pyro4.config.SERIALIZER = 'pickle'
-    Pyro4.config.REQUIRE_EXPOSE = False
 
 import cockpit.config
 import cockpit.depot
@@ -87,6 +78,13 @@ import cockpit.interfaces.stageMover
 import cockpit.util.files
 import cockpit.util.logger
 import cockpit.util.userConfig
+
+
+# Required since Pyro4 v4.22 (which is a project requirement anyway)
+Pyro4.config.SERIALIZERS_ACCEPTED.discard('serpent')
+Pyro4.config.SERIALIZERS_ACCEPTED.add('pickle')
+Pyro4.config.SERIALIZER = 'pickle'
+Pyro4.config.REQUIRE_EXPOSE = False
 
 
 class CockpitApp(wx.App):

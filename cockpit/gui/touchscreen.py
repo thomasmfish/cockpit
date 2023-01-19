@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018-2019 Mick Phillips <mick.phillips@gmail.com>
-# Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
-# Copyright (C) 2021 Danail Stoychev <danail.stoychev@exeter.ox.ac.uk>
-#
-# This file is part of Cockpit.
-#
-# Cockpit is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Cockpit is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Cockpit.  If not, see <http://www.gnu.org/licenses/>.
+## Copyright (C) 2021 University of Oxford
+##
+## This file is part of Cockpit.
+##
+## Cockpit is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## Cockpit is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with Cockpit.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
@@ -581,9 +579,9 @@ class LightsPanelEntry(wx.Panel):
                 cockpit.gui.IMAGES_PATH, "touchscreen/misc_wavelength.png",
             )
         )
-        if self.power:
+        if self.light:
             img.Replace(
-                255, 255, 255, *wavelengthToColor(self.power.wavelength)
+                255, 255, 255, *wavelengthToColor(self.light.wavelength)
             )
         sizer_row0.Add(
             wx.StaticBitmap(self, bitmap=img.ConvertToBitmap()),
@@ -761,56 +759,10 @@ class CamerasPanelEntry(wx.Panel):
         button_toggle.setState(self.camera_handler.state)
         sizer_row0.Add(button_toggle, 1, wx.EXPAND | wx.LEFT, 5)
         sizer.Add(sizer_row0, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        # Second row: gain
-        if "gain" in self.camera.settings:
-            sizer_row1 = wx.BoxSizer(wx.HORIZONTAL)
-            gain_min, gain_max = self.camera.describe_setting("gain")["values"]
-            gain_img = wx.Image(
-                os.path.join(
-                    cockpit.gui.IMAGES_PATH, "touchscreen/misc_opamp.png"
-                )
-            )
-            gain_ctrl = VariableControlContinuous(
-                self,
-                init_val=self.camera.settings["gain"],
-                step_offset=1,
-                units="",
-                limit_low=gain_min,
-                limit_high=gain_max,
-            )
-            gain_ctrl.Bind(
-                EVT_VAR_CTRL_CONT_COMMAND_EVENT,
-                lambda e: self.camera.updateSettings(
-                    {"gain": e.GetClientData()[1]}
-                ),
-            )
-            events.subscribe(
-                events.SETTINGS_CHANGED % self.camera,
-                lambda: gain_ctrl.set_value(self.camera.settings["gain"]),
-            )
-            sizer_row1.Add(
-                wx.StaticBitmap(self, bitmap=gain_img.ConvertToBitmap()),
-                0,
-                wx.ALIGN_CENTER,
-            )
-            sizer_row1.Add(gain_ctrl, 1, wx.ALIGN_CENTER | wx.LEFT, 5)
-            sizer.Add(
-                sizer_row1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5
-            )
-        # Third row: readout and settings
-        sizer_row2 = wx.BoxSizer(wx.HORIZONTAL)
-        readout_choice = wx.Choice(self, choices=[])
-        if "readout mode" in self.camera.settings:
-            readout_choice.SetItems(self.camera._modenames)
-            readout_choice.SetSelection(0)
-        else:
-            readout_choice.Enable(False)
-        sizer_row2.Add(readout_choice, 1, wx.ALIGN_CENTER)
+        # Second row: the settings button
         button_settings = wx.Button(self, label="Settings")
         button_settings.Bind(wx.EVT_LEFT_UP, self.camera.showSettings)
-        sizer_row2.Add(button_settings, 1, wx.ALIGN_CENTER | wx.LEFT, 5)
-        sizer.Add(sizer_row2, 0, wx.EXPAND | wx.ALL, 5)
-        # Finalise layout
+        sizer.Add(button_settings, wx.SizerFlags().Expand().Border(wx.ALL, 5))
         self.SetSizer(sizer)
         self.Layout()
 
@@ -902,6 +854,13 @@ class MosaicPanel(wx.Panel, mosaic.MosaicCommon):
     def selectedSites(self):
         return mosaic.window.selectedSites
 
+    @property
+    def displayTrails(self):
+        return mosaic.window.displayTrails
+    @property
+    def trails(self):
+        return mosaic.window.trails
+    
     @property
     def primitives(self):
         return mosaic.window.primitives
@@ -1660,7 +1619,7 @@ class ImagePreviewPanel(wx.lib.scrolledpanel.ScrolledPanel):
             # size is still 1x1
             new_width = self.GetClientSize()[0]
             vp_aspect_ratio = _VIEWPANEL_SIZE[0] / _VIEWPANEL_SIZE[1]
-            new_height = new_width / vp_aspect_ratio
+            new_height = int(new_width / vp_aspect_ratio)
             for view in viewsToShow:
                 view.change_size(wx.Size(new_width, new_height))
 

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
-## Copyright (C) 2018 David Miguel Susano Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -434,6 +432,13 @@ class ExperimentConfigPanel(wx.Panel):
                         self.lightExposureTimes[i].GetValue()):
                     lightTimePairs.append(
                         (light, guiUtils.tryParseNum(self.lightExposureTimes[i], decimal.Decimal)))
+                    
+            if lightTimePairs == [] :
+                if not guiUtils.getUserPermission(
+                    ("No enabled light has a define exposure time.") +
+                    "Are you sure you want to continue?"):
+                    return True
+                
             exposureSettings = [(cameras, lightTimePairs)]
         else:
             # A separate exposure for each camera.
@@ -564,7 +569,7 @@ class FilepathPanel(wx.Panel):
         }
 
         template = self._template_ctrl.GetValue()
-        basename = template.format(**all_mappings)
+        basename = template.format_map(Default(**all_mappings))
         self._fname_ctrl.SetValue(basename)
 
     def _OnUpdateFilename(self, evt: wx.CommandEvent) -> None:
@@ -584,3 +589,8 @@ class FilepathPanel(wx.Panel):
 
     def SetTemplate(self, template: str) -> None:
         self._template_ctrl.SetValue(template)
+
+
+class Default(dict):
+    def __missing__(self, key):
+        return f"{{key}}"

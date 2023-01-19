@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -82,7 +81,7 @@ class MacroStageBase(wx.glcanvas.GLCanvas):
     ## Create the MacroStage. Mostly, attach a timer to the main window so
     # that we can use it to trigger updates.
     def __init__(self, parent, size, id = -1, *args, **kwargs):
-        super().__init__(parent, id, size = size, *args, **kwargs)
+        super().__init__(parent, id, size = tuple(map(int, size)), *args, **kwargs)
 
         ## WX context for drawing.
         self.context = wx.glcanvas.GLContext(self)

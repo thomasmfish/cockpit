@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
-## Copyright (C) 2018 Nicholas Hall <nicholas.hall@dtc.ox.ac.uk>
-## Copyright (C) 2020 David Miguel Susano Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 Nicholas Hall
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -59,6 +57,7 @@ import typing
 from cockpit import depot
 from cockpit import events
 from cockpit.util import userConfig
+import cockpit.util.threads
 
 import numpy
 import threading
@@ -460,14 +459,14 @@ def saveSite(newSite = None):
     # Start counting from the new site, if necessary.
     global uniqueSiteIndex
     uniqueSiteIndex = max(uniqueSiteIndex, newSite.uniqueID)
-    events.publish('new site', newSite)
+    events.publish(events.NEW_SITE, newSite)
 
 
 ## Remove a site with the specified ID.
 def deleteSite(siteID):
     site = mover.idToSite[siteID]
     del mover.idToSite[siteID]
-    events.publish('site deleted', site)
+    events.publish(events.DELETE_SITE, site)
     # HACK: if this siteID is for the most-recently created
     # site, decrement the global site ID.
     global uniqueSiteIndex

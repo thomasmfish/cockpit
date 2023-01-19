@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -122,7 +121,7 @@ class ViewPanel(wx.Panel):
             dy -= y0
             dx *= pixelSize
             dy *= pixelSize
-            target = (self.imagePos[0]-dx, self.imagePos[1]+dy)
+            target = (self.imagePos[0]-dx, self.imagePos[1]-dy)
             cockpit.interfaces.stageMover.goToXY(target)
         else:
             event.Skip()
@@ -212,7 +211,9 @@ class ViewPanel(wx.Panel):
     ## Receive a new image and send it to our canvas.
     def onImage(self, data, *args):
         self.canvas.setImage(data)
-        self.imagePos = None
+        self.pixelsize =  wx.GetApp().Objectives.GetPixelSize()
+        self.emwavelength = self.curCamera.wavelength
+        self.imagePos = cockpit.interfaces.stageMover.getPosition()
 
 
     ## Return True if we currently display a camera.

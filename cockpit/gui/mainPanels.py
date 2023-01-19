@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2020 David Miguel Susano Pinto <david.pinto@bioch.ox.ac.uk>
-## Copyright (C) 2018-19 Mick Phillips <mick.phillips@gmail.com>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -141,13 +140,9 @@ class CameraPanel(wx.Panel):
         camera.addWatch('wavelength', self.onWavelengthChange)
         self.Sizer.AddSpacer(2)
 
-        if hasattr(camera, 'modes'):
-            modebutton = wx.Button(parent, label='Mode')
-            self.Sizer.Add(modebutton)
-
         if camera.callbacks.get('makeUI', None):
-            self.Sizer.Add(camera.callbacks['makeUI'](self))
-        self.Sizer.AddSpacer(2)
+            self.Sizer.Add(camera.callbacks['makeUI'](self),
+                           wx.SizerFlags().Expand())
 
 
     def onWavelengthChange(self, wl):
@@ -302,7 +297,7 @@ class ChannelsPanel(wx.Panel):
                 return sizer_item.Window
         else:
             raise ValueError('There is no button named \'%s\''
-                             % channel_name)
+                             % name)
 
 
     def OnChannelAdded(self, event: wx.CommandEvent) -> None:

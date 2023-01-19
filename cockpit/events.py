@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2020 David Miguel Susano Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -113,6 +112,9 @@ the system expects.
 
 ``VIDEO_MODE_TOGGLE``
 
+``SYNCED_VIEW``
+Enabled on camera view images that are synced with zoom/pan to other views. 
+
 ``"filter change"``
 
 ``"image pixel info"``
@@ -163,6 +165,9 @@ STAGE_POSITION = 'stage position'
 STAGE_MOVER = 'stage mover'
 STAGE_STOPPED = 'stage stopped'
 STAGE_TOP_BOTTOM = 'stage saved top/bottom'
+NEW_SITE = 'new site'
+DELETE_SITE = 'site deleted'
+SYNCED_VIEW = 'synced view'
 USER_ABORT = 'user abort'
 MOSAIC_UPDATE = 'mosaic update'
 NEW_IMAGE = 'new image %s' # must be suffixed with image source

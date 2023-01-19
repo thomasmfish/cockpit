@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -101,8 +100,11 @@ class MainWindowPanel(wx.Panel):
         # A row of buttons for various actions we know we can take.
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         # Abort button
-        abortButton = wx.Button(self, wx.ID_ANY, "abort")
-        abortButton.SetLabelMarkup("<span foreground='red'><big><b>ABORT</b></big></span>")
+        abortButton = wx.Button(self, wx.ID_ANY, label="ABORT")
+        abortButton.SetForegroundColour(wx.RED)
+        abortButton.SetFont(
+            abortButton.GetFont().Bold().Larger()
+        )
         abortButton.Bind(wx.EVT_BUTTON, lambda event: events.publish(events.USER_ABORT))
         buttonSizer.Add(abortButton, 1, wx.EXPAND)
 

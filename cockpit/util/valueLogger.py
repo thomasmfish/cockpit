@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018 Mick Phillips <mick.phillips@gmail.com>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -21,11 +21,9 @@
 import time
 import threading
 import sys
-try:
-    from collections.abc import Iterable
-except:
-    from collections import Iterable
+from collections.abc import Iterable
 from datetime import datetime
+
 from cockpit.util import files
 import os
 DELIMITER = ';'

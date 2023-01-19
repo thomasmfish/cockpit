@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright (C) 2018-19 Mick Phillips <mick.phillips@gmail.com>
-## Copyright (C) 2018 Ian Dobbie <ian.dobbie@bioch.ox.ac.uk>
-## Copyright (C) 2018 David Pinto <david.pinto@bioch.ox.ac.uk>
+## Copyright (C) 2021 University of Oxford
 ##
 ## This file is part of Cockpit.
 ##
@@ -436,7 +434,11 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
 
         ## Should we show a crosshair (used for alignment)?
         self.showCrosshair = False
-
+        ##default to enabled synced view, set to flase then toggle it to
+        ##do the correct subscriptions. 
+        self.syncViews = False
+        self.toggleSyncViews()
+        
         ## Queue of incoming images that we need to either display or discard.
         self.imageQueue = queue.Queue()
         ## Current image we're working with.
@@ -517,6 +519,7 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
         self.zoom = newZoom
         self.panX += factor * glx
         self.panY += factor * gly
+        events.publish(events.SYNCED_VIEW, self.panX, self.panY, self.zoom)
         self.Refresh()
 
 
@@ -739,6 +742,7 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
                 ('Toggle clip highlighting', self.image.toggleClipHighlight),
                 ('', None),
                 ('Toggle alignment crosshair', self.toggleCrosshair),
+                ('Toggle sync view', self.toggleSyncViews),
                 ("Toggle FFT mode", self.toggleFFT),
                 ('', None),
                 ('Save image', self.saveData)
@@ -756,7 +760,17 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
         self.image.vmax = self.histogram.uthresh = values[1]
         self.Refresh()
 
-
+    def toggleSyncViews(self, event=None):
+        self.syncViews = not self.syncViews
+        if self.syncViews:
+            events.subscribe(events.SYNCED_VIEW,
+                             self.setView,
+                             )
+        else:
+            events.unsubscribe(events.SYNCED_VIEW,
+                               self.setView,
+                             )
+            
     def toggleCrosshair(self, event=None):
         self.showCrosshair = not(self.showCrosshair)
 
@@ -813,6 +827,7 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
     def modPan(self, dx, dy):
         self.panX += 2 * dx / (self.w * self.zoom)
         self.panY += 2 * dy / (self.h * self.zoom)
+        events.publish(events.SYNCED_VIEW, self.panX, self.panY, self.zoom)
         self.Refresh(0)
 
 
@@ -825,6 +840,13 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
         self.panY = 0
         self.zoom = 1.0
         self.Refresh(0)
+
+    def setView(self, panX, panY, zoom):
+        self.panX = panX
+        self.panY = panY
+        self.zoom = zoom
+        self.Refresh(0)
+
 
     def resetPixelScale(self):
         self.image.autoscale()
@@ -842,4 +864,8 @@ class ViewCanvas(wx.glcanvas.GLCanvas):
         # addressed first. See issue #538.
         if self.Parent.Parent.curCamera is not None:
             wls = [self.Parent.Parent.curCamera.wavelength,]
-        cockpit.util.datadoc.writeDataAsMrc(self.imageData, path, wavelengths=wls)
+            xysize=self.Parent.Parent.pixelsize
+            xyzpos=self.Parent.Parent.imagePos
+        cockpit.util.datadoc.writeDataAsMrc(self.imageData, path,
+                                            XYSize=xysize, wavelengths=wls,
+                                            zxy0=xyzpos)
