@@ -503,7 +503,7 @@ class MainWindow(wx.Frame):
         self.SetStatusBar(StatusLights(parent=self))
 
         sizer = wx.BoxSizer()
-        sizer.Add(panel)
+        sizer.Add(panel, proportion=1, flag=wx.EXPAND)
         self.SetSizerAndFit(sizer)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -514,6 +514,11 @@ class MainWindow(wx.Frame):
         if 'gtk3' in wx.PlatformInfo:
             self.Bind(wx.EVT_SHOW, self.OnShow)
 
+        self.Bind(wx.EVT_SIZE, self.onSize)
+
+    def onSize(self, evt):
+        self.Layout()
+        self.Update()
 
     def OnShow(self, event: wx.ShowEvent) -> None:
         self.Fit()
