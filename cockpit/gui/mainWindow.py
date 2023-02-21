@@ -517,8 +517,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_SIZE, self.onSize)
 
     def onSize(self, evt):
-        self.Layout()
         self.SetMinSize(self.GetBestSize())
+        self.Layout()
         self.Update()
 
     def OnShow(self, event: wx.ShowEvent) -> None:
