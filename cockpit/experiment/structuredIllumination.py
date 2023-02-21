@@ -481,13 +481,16 @@ class SIExperiment(experiment.Experiment):
         del doc
         del img_data
 
-        # Copy permissions to new file
-        shutil.copymode(self.savePath, tmp_fh.name)
-
-        ## Windows needs to have the file removed first.
+        ## Windows needs to have the file removed first and be copied to properly set permissions.
         if os.name == "nt":
             os.remove(self.savePath)
-        shutil.move(tmp_fh.name, self.savePath)
+            # Copy without permissions (inherits permissions from destination)
+            shutil.copyfile(tmp_fh.name, self.savePath)
+            os.remove(tmp_fh.name)
+        else:
+            # Copy permissions to new file
+            shutil.copymode(self.savePath, tmp_fh.name)
+            shutil.move(tmp_fh.name, self.savePath)     
         return
 
 
