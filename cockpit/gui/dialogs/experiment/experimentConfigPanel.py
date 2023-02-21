@@ -61,10 +61,11 @@ import cockpit.util.files
 import collections
 import decimal
 import json
-import os.path
+import os
 import time
 import traceback
 import typing
+from uuid import uuid4
 
 import wx
 
@@ -362,7 +363,7 @@ class ExperimentConfigPanel(wx.Panel):
         # Get the filepath to save settings to.
         dialog = wx.FileDialog(self, style = wx.FD_SAVE, wildcard = '*.txt',
                 message = 'Please select where to save the experiment.',
-                defaultDir = cockpit.util.files.getUserSaveDir())
+                defaultDir = cockpit.util.files.getDataDir())
         if dialog.ShowModal() != wx.ID_OK:
             # User cancelled.
             return
@@ -382,7 +383,7 @@ class ExperimentConfigPanel(wx.Panel):
     def onLoadExperiment(self, event = None):
         dialog = wx.FileDialog(self, style = wx.FD_OPEN, wildcard = '*.txt',
                 message = 'Please select the experiment file to load.',
-                defaultDir = cockpit.util.files.getUserSaveDir())
+                defaultDir = cockpit.util.files.getDataDir())
         if dialog.ShowModal() != wx.ID_OK:
             # User cancelled.
             return
@@ -473,7 +474,7 @@ class ExperimentConfigPanel(wx.Panel):
             savePath = self.filepath_panel.GetPath()
         except Exception:
             cockpit.gui.ExceptionBox(
-                "Failed to get filename for data.", parent=self
+                "Failed to get filepath for data.", parent=self
             )
             return True
 
@@ -529,7 +530,7 @@ class FilepathPanel(wx.Panel):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._dir_ctrl = wx.DirPickerCtrl(
-            self, path=cockpit.util.files.getUserSaveDir()
+            self, path=cockpit.util.files.getDataDir()
         )
         self._template_ctrl = wx.TextCtrl(self)
         self._template_ctrl.SetToolTip(
@@ -578,11 +579,29 @@ class FilepathPanel(wx.Panel):
 
     def GetPath(self) -> str:
         """Return full filepath to use."""
-        dirname = self._dir_ctrl.GetPath()
-        basename = self._fname_ctrl.GetValue()
+        # Ignore trailing/leading whitespace
+        dirname = self._dir_ctrl.GetPath().strip()
+        basename = self._fname_ctrl.GetValue().strip()
+        if not os.path.isdir(dirname):
+            raise Exception("Specified directory does not exist")
+        if not FilepathPanel.is_writable(dirname):
+            raise Exception("Unable to write to specified directory")
         if not basename:
             raise Exception("Filename is empty")
         return os.path.join(dirname, basename)
+
+    @staticmethod
+    def is_writable(dir):
+        try:  # Only true way to test writability is to try
+            tmpfile =  os.path.join(dir, "tmp_%s" % uuid4())
+            with open(tmpfile, "wb+"):
+                pass
+        except Exception:
+            return False
+        finally:
+            if os.path.isfile(tmpfile):
+                os.remove(tmpfile)
+        return True
 
     def GetTemplate(self) -> str:
         return self._template_ctrl.GetValue()
