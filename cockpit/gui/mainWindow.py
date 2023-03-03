@@ -188,17 +188,17 @@ class MainWindowPanel(wx.Panel):
                 if rowSizer.GetChildren():
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
-                rowSizer.Add(itemsizer)
+                rowSizer.Add(itemsizer, 1)
 
-        root_sizer.Add(rowSizer, wx.SizerFlags().Expand())
+        root_sizer.Add(rowSizer, 1, flag=wx.EXPAND)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lights_sizer.Add(mainPanels.LightControlsPanel(self), flag=wx.EXPAND)
-        lights_sizer.Add(mainPanels.ChannelsPanel(self), flag=wx.EXPAND)
-        root_sizer.Add(lights_sizer, flag=wx.EXPAND)
-
-        self.SetSizer(root_sizer)
+        lights_sizer.Add(mainPanels.LightControlsPanel(self), 1, flag=wx.EXPAND)
+        lights_sizer.Add(mainPanels.ChannelsPanel(self), 1, flag=wx.EXPAND)
+        root_sizer.Add(lights_sizer, 1, flag= wx.ALL | wx.EXPAND)
+        root_sizer.Layout()
+        self.SetSizerAndFit(root_sizer)
 
         keyboard.setKeyboardHandlers(self)
         self.joystick = joystick.Joystick(self)
