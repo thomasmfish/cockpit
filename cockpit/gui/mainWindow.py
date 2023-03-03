@@ -184,21 +184,21 @@ class MainWindowPanel(wx.Panel):
             if item is not None:
                 itemsizer = wx.BoxSizer(wx.VERTICAL)
                 itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name))
-                itemsizer.Add(item, 1, wx.EXPAND)
+                itemsizer.Add(item, 0, wx.EXPAND)
                 if rowSizer.GetChildren():
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
-                rowSizer.Add(itemsizer, 1)
+                rowSizer.Add(itemsizer, 1, flag=wx.EXPAND)
 
         root_sizer.Add(rowSizer, 1, flag=wx.EXPAND)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lights_sizer.Add(mainPanels.LightControlsPanel(self), 1, flag=wx.EXPAND)
-        lights_sizer.Add(mainPanels.ChannelsPanel(self), 1, flag=wx.EXPAND)
-        root_sizer.Add(lights_sizer, 1, flag= wx.ALL | wx.EXPAND)
-        root_sizer.Layout()
-        self.SetSizerAndFit(root_sizer)
+        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0, flag=wx.EXPAND)
+        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, flag=wx.EXPAND)
+        root_sizer.Add(lights_sizer, 1, flag=wx.EXPAND)
+        self.SetSizer(root_sizer)
+        self.Layout()
 
         keyboard.setKeyboardHandlers(self)
         self.joystick = joystick.Joystick(self)
