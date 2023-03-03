@@ -80,6 +80,8 @@ class LightPanel(wx.Panel):
             for f in lightFilters:
                 self.Sizer.Add(f.makeSelector(self), flag=wx.EXPAND)
 
+        self.SetSizerAndFit(self.Sizer)
+
 
     def SetFocus(self):
         # Sets focus to the main button to avoid accidental data entry
@@ -116,7 +118,7 @@ class LightControlsPanel(wx.Panel):
             sz.Add(panel, flag=wx.EXPAND)
             self.panels[light] = panel
             sz.AddSpacer(4)
-        self.Fit()
+        self.SetSizerAndFit(self.Sizer)
 
 
 class CameraPanel(wx.Panel):
@@ -143,6 +145,7 @@ class CameraPanel(wx.Panel):
         if camera.callbacks.get('makeUI', None):
             self.Sizer.Add(camera.callbacks['makeUI'](self),
                            wx.SizerFlags().Expand())
+        self.SetSizerAndFit(self.Sizer)
 
 
     def onWavelengthChange(self, wl):
@@ -183,7 +186,7 @@ class CameraControlsPanel(wx.Panel):
             sz.Add(panel, flag=wx.EXPAND)
             self.panels[cam] = panel
             sz.AddSpacer(4)
-        self.Fit()
+        self.SetSizerAndFit(self.Sizer)
 
 
 class ObjectiveControls(wx.Panel):
@@ -211,7 +214,7 @@ class ObjectiveControls(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label)
         sizer.Add(self._choice)
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
 
     def _OnObjectiveChoice(self, event: wx.CommandEvent) -> None:
         self._interface.ChangeObjective(event.GetString())
@@ -240,6 +243,7 @@ class FilterControls(wx.Panel):
         for i, f in enumerate(filters):
             subpanel.Sizer.Add(f.makeUI(subpanel), 0,
                                wx.EXPAND | wx.RIGHT | wx.BOTTOM, 8)
+        self.SetSizerAndFit(self.Sizer)
 
 
 class ChannelsPanel(wx.Panel):
@@ -259,7 +263,7 @@ class ChannelsPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label)
         sizer.Add(self._buttons_sizer, wx.SizerFlags().Expand())
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
 
 
     def _LayoutWithFrame(self):
