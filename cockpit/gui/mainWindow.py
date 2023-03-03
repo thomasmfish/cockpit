@@ -516,12 +516,13 @@ class MainWindow(wx.Frame):
         if 'gtk3' in wx.PlatformInfo:
             self.Bind(wx.EVT_SHOW, self.OnShow)
 
-        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
 
-    def onSize(self, event: wx.SizeEvent) -> None:
+    def OnSize(self, event: wx.SizeEvent) -> None:
         self.Layout()
         self.SetMinSize(self.GetSizer().GetMinSize())
         self.Update()
+        event.Skip()
 
     def OnShow(self, event: wx.ShowEvent) -> None:
         self.Layout()
