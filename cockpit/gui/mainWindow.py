@@ -502,9 +502,11 @@ class MainWindow(wx.Frame):
 
         self.SetStatusBar(StatusLights(parent=self))
 
-        sizer = wx.BoxSizer()
-        sizer.Add(panel, proportion=1, flag=wx.EXPAND)
-        self.SetSizerAndFit(sizer)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(panel, 1, flag=wx.EXPAND | wx.ALL)
+        sizer.Layout()
+        sizer.SetSizeHints(self)
+        self.SetSizer(sizer)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
@@ -516,13 +518,13 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_SIZE, self.onSize)
 
-    def onSize(self, evt):
+    def onSize(self, event: wx.SizeEvent) -> None:
         self.Layout()
         self.SetMinSize(self.GetSizer().GetMinSize())
         self.Update()
 
     def OnShow(self, event: wx.ShowEvent) -> None:
-        self.Fit()
+        self.Layout()
         event.Skip()
 
     def OnOpen(self, event: wx.CommandEvent) -> None:
