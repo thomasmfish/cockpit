@@ -446,7 +446,6 @@ class SetPointGauge(SafeControl, wx.Window):
         else:
             self.MinSize = (96, 18)
             self.Size = (-1, 18)
-        self.SetMinSize(self.MinSize)
         self._anim = []
         self._displayed = self._value.setpoint
         self._pending = None
@@ -463,7 +462,6 @@ class SetPointGauge(SafeControl, wx.Window):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnDrag)
         self.AcceptsFocusFromKeyboard = lambda: False
         self.SetDoubleBuffered(True)
-        self.Layout()
 
     @property
     def Value(self):
