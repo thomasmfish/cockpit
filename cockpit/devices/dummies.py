@@ -28,7 +28,6 @@ import microscope.testsuite.devices
 import cockpit.devices.executorDevices
 import cockpit.devices.microscopeCamera
 import cockpit.devices.microscopeDevice
-import cockpit.devices.boulderSLM
 from cockpit.handlers.stagePositioner import PositionerHandler
 
 
@@ -67,13 +66,6 @@ class DummyDSP(_MicroscopeTestDevice,
                cockpit.devices.executorDevices.ExecutorDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(microscope.testsuite.devices.DummyDSP(),
-                         *args, **kwargs)
-
-
-class DummySLM(_MicroscopeTestDevice,
-               cockpit.devices.boulderSLM.BoulderSLM):
-    def __init__(self, *args, **kwargs):
-        super().__init__(microscope.testsuite.devices.DummySLM(),
                          *args, **kwargs)
 
 
