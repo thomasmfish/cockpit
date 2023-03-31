@@ -184,7 +184,8 @@ class MainWindowPanel(wx.Panel):
             if item is not None:
                 itemsizer = wx.BoxSizer(wx.VERTICAL)
                 itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name))
-                itemsizer.Add(item, 0, wx.EXPAND)
+                itemsizer.Add(item, 0)
+                itemsizer.Layout()
                 if rowSizer.GetChildren():
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
@@ -196,7 +197,9 @@ class MainWindowPanel(wx.Panel):
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
         lights_sizer.Add(mainPanels.LightControlsPanel(self), 0, flag=wx.EXPAND)
         lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, flag=wx.EXPAND)
-        root_sizer.Add(lights_sizer, 1, flag=wx.EXPAND)
+        lights_sizer.Layout()
+        root_sizer.Add(lights_sizer, 0, flag=wx.EXPAND)
+        root_sizer.Layout()
         self.SetSizer(root_sizer)
         self.Layout()
 
@@ -204,7 +207,11 @@ class MainWindowPanel(wx.Panel):
         self.joystick = joystick.Joystick(self)
 
         self.SetDropTarget(viewFileDropTarget.ViewFileDropTarget(self))
+        self.Bind(wx.EVT_SIZE, self.OnSize, self)
 
+    def OnSize(self, event: wx.SizeEvent):
+        self.Layout()
+        self.Refresh()
 
     ## User clicked the "view last file" button; open the last experiment's
     # file in an image viewer. A bit tricky when there's multiple files

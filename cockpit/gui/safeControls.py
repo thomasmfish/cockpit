@@ -643,7 +643,11 @@ class SetPointGauge(SafeControl, wx.Window):
         n = 40
         while dg < 16:
             n = n // 2
-            dg = rect.Size[self._vertical] / n
+            vert = rect.Size[self._vertical]
+            if vert == 0:
+                dg = 16
+            else:
+                dg = vert / n
         if self._vertical:
             lines = [(2, min(rect.height - 1, int(i * dg)), rect.width - 2,
                       min(rect.height - 1, int(i * dg))) for i in range(1, n)]

@@ -105,7 +105,6 @@ class LightControlsPanel(wx.Panel):
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(PanelLabel(self, label="Lights"))
         sz = wx.BoxSizer(wx.HORIZONTAL)
-        self.Sizer.Add(sz)
 
         lightToggles = sorted(depot.getHandlersOfType(depot.LIGHT_TOGGLE),
                               key=lambda l: l.wavelength)
@@ -120,6 +119,8 @@ class LightControlsPanel(wx.Panel):
             sz.Add(panel, flag=wx.EXPAND)
             self.panels[light] = panel
             sz.AddSpacer(4)
+        sz.Layout()
+        self.Sizer.Add(sz)
         self.Sizer.Layout()
         self.SetSizerAndFit(self.Sizer)
 
@@ -178,7 +179,6 @@ class CameraControlsPanel(wx.Panel):
         sz = wx.BoxSizer(wx.HORIZONTAL)
         label = PanelLabel(self, label="Cameras")
         self.Sizer.Add(label)
-        self.Sizer.Add(sz)
 
         cameras = sorted(depot.getHandlersOfType(depot.CAMERA),
                               key=lambda c: c.name)
@@ -190,6 +190,8 @@ class CameraControlsPanel(wx.Panel):
             sz.Add(panel, flag=wx.EXPAND)
             self.panels[cam] = panel
             sz.AddSpacer(4)
+        sz.Layout()
+        self.Sizer.Add(sz)
         self.Sizer.Layout()
         self.SetSizerAndFit(self.Sizer)
 
@@ -238,8 +240,7 @@ class FilterControls(wx.Panel):
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(PanelLabel(self, label="Filters"))
         subpanel = wx.Panel(self, style=wx.BORDER_RAISED)
-        self.Sizer.Add(subpanel, 1, wx.EXPAND)
-        subpanel.Sizer = wx.WrapSizer(orient=wx.VERTICAL)
+        subpanel_sizer = wx.BoxSizer(orient=wx.VERTICAL)
 
         filters = depot.getHandlersOfType(depot.LIGHT_FILTER)
         if not filters:
@@ -247,8 +248,11 @@ class FilterControls(wx.Panel):
             return
 
         for i, f in enumerate(filters):
-            subpanel.Sizer.Add(f.makeUI(subpanel), 0,
-                               wx.EXPAND | wx.RIGHT | wx.BOTTOM, 8)
+            subpanel_sizer.Add(f.makeUI(subpanel), 0,
+                               wx.EXPAND | wx.LEFT | wx.BOTTOM, 8)
+        subpanel_sizer.Layout()
+        subpanel.SetSizerAndFit(subpanel_sizer)
+        self.Sizer.Add(subpanel, 0, wx.EXPAND)
         self.Sizer.Layout()
         self.SetSizerAndFit(self.Sizer)
 
@@ -267,9 +271,10 @@ class ChannelsPanel(wx.Panel):
         wx.GetApp().Channels.Bind(cockpit.interfaces.channels.EVT_CHANNEL_REMOVED,
                                   self.OnChannelRemoved)
 
+        self._buttons_sizer.Layout()
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label)
-        sizer.Add(self._buttons_sizer, wx.SizerFlags().Expand())
+        sizer.Add(self._buttons_sizer, proportion=0)
         sizer.Layout()
         self.SetSizerAndFit(sizer)
 
@@ -294,7 +299,7 @@ class ChannelsPanel(wx.Panel):
     def AddButton(self, name: str) -> None:
         button = wx.Button(self, label=name)
         button.Bind(wx.EVT_BUTTON, self.OnButton)
-        self._buttons_sizer.Add(button, wx.SizerFlags().Expand())
+        self._buttons_sizer.Add(button, 0, wx.EXPAND)
         self._LayoutWithFrame()
 
     def RemoveButton(self, name: str) -> None:
