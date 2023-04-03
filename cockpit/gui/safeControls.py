@@ -159,9 +159,9 @@ class SafeSpinCtrlDouble(SafeControl, wx.Panel):
         sb = wx.SpinButton(self)
         self.Sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.Sizer.Add(self.te, proportion=1)
-        self.Sizer.Add(sb, proportion=0)
-        self.Fit()
         sb.MaxSize = (-1, te.Size[-1])
+        self.Sizer.Add(sb, proportion=0)
+        self.SetSizerAndFit(self.Sizer)
         # initialise _committed
         self.SetValue(value)
         # initialise text control
