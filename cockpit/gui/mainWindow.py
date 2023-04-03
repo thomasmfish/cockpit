@@ -191,7 +191,7 @@ class MainWindowPanel(wx.Panel):
                     rowSizer.AddSpacer(COL_SPACER)
                 rowSizer.Add(itemsizer, 1, flag=wx.EXPAND)
 
-        root_sizer.Add(rowSizer, 1, flag=wx.EXPAND)
+        root_sizer.Add(rowSizer, 0, flag=wx.EXPAND)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
