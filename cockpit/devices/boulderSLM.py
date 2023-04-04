@@ -277,17 +277,18 @@ class BoulderSLM(device.Device):
     def makeUI(self, parent):
         panel = wx.Panel(parent, style=wx.BORDER_RAISED)
         panel.SetDoubleBuffered(True)
-        panel.Sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
         powerButton = cockpit.gui.device.EnableButton(panel, self.handler)
-        panel.Sizer.Add(powerButton, 0, wx.EXPAND)
+        sizer.Add(powerButton, 0, wx.EXPAND)
         triggerButton = wx.Button(panel, label="step")
         triggerButton.Bind(wx.EVT_BUTTON, lambda evt: self.handler.triggerNow())
-        panel.Sizer.Add(triggerButton, 0, wx.EXPAND)
+        sizer.Add(triggerButton, 0, wx.EXPAND)
         # Add a position display.
         posDisplay = cockpit.gui.device.MultilineDisplay(parent=panel, numLines=3)
         posDisplay.Bind(wx.EVT_TIMER,
                         lambda event: self.updatePositionDisplay(event))
-        panel.Sizer.Add(posDisplay)
+        sizer.Add(posDisplay)
+        panel.SetSizerAndFit(sizer)
         # Set up a timer to update value displays.
         self.updateTimer = wx.Timer(posDisplay)
         self.updateTimer.Start(1000)
