@@ -170,7 +170,7 @@ class MainWindowPanel(wx.Panel):
         ignoreThings.extend(lightfilters)
 
         # Add filterwheel controls.
-        rowSizer.Add(mainPanels.FilterControls(self))
+        rowSizer.Add(mainPanels.FilterControls(self), 0)
 
         # Make the UI elements for eveything else.
         for thing in ignoreThings:
@@ -183,25 +183,26 @@ class MainWindowPanel(wx.Panel):
             item = thing.makeUI(self)
             if item is not None:
                 itemsizer = wx.BoxSizer(wx.VERTICAL)
-                itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name))
+                itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name), 0)
                 itemsizer.Add(item, 0)
                 itemsizer.Layout()
                 if rowSizer.GetChildren():
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
-                rowSizer.Add(itemsizer, 1, flag=wx.EXPAND)
+                rowSizer.Add(itemsizer, 0)
 
-        root_sizer.Add(rowSizer, 0, flag=wx.EXPAND)
+        root_sizer.Add(rowSizer, 1, wx.EXPAND)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0, flag=wx.EXPAND)
-        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, flag=wx.EXPAND)
+        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
+        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0)
         lights_sizer.Layout()
-        root_sizer.Add(lights_sizer, 0, flag=wx.EXPAND)
+
+        root_sizer.Add(lights_sizer, 1, wx.EXPAND)
         root_sizer.Layout()
-        self.SetSizer(root_sizer)
-        self.Layout()
+
+        self.SetSizerAndFit(root_sizer)
 
         keyboard.setKeyboardHandlers(self)
         self.joystick = joystick.Joystick(self)
@@ -510,10 +511,9 @@ class MainWindow(wx.Frame):
         self.SetStatusBar(StatusLights(parent=self))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(panel, 1, flag=wx.EXPAND | wx.ALL)
+        sizer.Add(panel, 1, wx.EXPAND)
         sizer.Layout()
-        sizer.SetSizeHints(self)
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
