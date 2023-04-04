@@ -345,5 +345,5 @@ class MicroscopeCamera(MicroscopeBase, CameraDevice):
         adv_button = wx.Button(parent=self.panel, label='Settings')
         adv_button.Bind(wx.EVT_LEFT_UP, self.showSettings)
         sizer.Add(adv_button, flags=wx.SizerFlags().Expand())
-        self.panel.SetSizer(sizer)
+        self.panel.SetSizerAndFit(sizer)
         return self.panel
