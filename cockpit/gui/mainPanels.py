@@ -72,7 +72,7 @@ class LightPanel(wx.Panel):
                                 lambda p: powCtrl.SetValue(p *100.0))
             powCtrl.Bind(safeControls.EVT_SAFE_CONTROL_COMMIT,
                          lambda evt: lightPower.setPower(evt.Value /100.0))
-            self.Sizer.Add(powCtrl, 1, flag=wx.EXPAND)
+            self.Sizer.Add(powCtrl, 0, flag=wx.EXPAND)
 
         if lightFilters:
             self.Sizer.AddSpacer(4)
@@ -116,7 +116,7 @@ class LightControlsPanel(wx.Panel):
             power = next(filter(lambda p: p.groupName == light.groupName, lightPowers), None)
             filters = list(filter(lambda f: light.name in f.lights, lightFilters) )
             panel = LightPanel (self, light, power, filters)
-            sz.Add(panel, flag=wx.EXPAND)
+            sz.Add(panel, 0)
             self.panels[light] = panel
             sz.AddSpacer(4)
         sz.Layout()
