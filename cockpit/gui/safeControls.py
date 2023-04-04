@@ -158,7 +158,7 @@ class SafeSpinCtrlDouble(SafeControl, wx.Panel):
         self.te.SetValidator(FloatValidator())
         sb = wx.SpinButton(self)
         self.Sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.Sizer.Add(self.te, proportion=0)
+        self.Sizer.Add(self.te, proportion=1, flag=wx.EXPAND)
         sb.MaxSize = (-1, te.Size[-1])
         self.Sizer.Add(sb, proportion=0)
         self.SetSizerAndFit(self.Sizer)
