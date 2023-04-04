@@ -190,16 +190,18 @@ class MainWindowPanel(wx.Panel):
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
                 rowSizer.Add(itemsizer, 0)
+        rowSizer.Layout()
 
-        root_sizer.Add(rowSizer, 1, wx.EXPAND)
+        root_sizer.Add(rowSizer, 0)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
-        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0)
-        lights_sizer.Layout()
+        self.lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
+        self.lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, wx.EXPAND)
+        self.lights_sizer.Layout()
 
-        root_sizer.Add(lights_sizer, 1, wx.EXPAND)
+        root_sizer.Add(self.lights_sizer, 0, wx.EXPAND)
+        
         root_sizer.Layout()
 
         self.SetSizerAndFit(root_sizer)
@@ -208,11 +210,13 @@ class MainWindowPanel(wx.Panel):
         self.joystick = joystick.Joystick(self)
 
         self.SetDropTarget(viewFileDropTarget.ViewFileDropTarget(self))
-        self.Bind(wx.EVT_SIZE, self.OnSize, self)
 
-    def OnSize(self, event: wx.SizeEvent):
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def OnSize(self, event: wx.SizeEvent) -> None:
         self.Layout()
-        self.Refresh()
+        self.SetMinSize(self.GetSizer().GetMinSize())
+        event.Skip()
 
     ## User clicked the "view last file" button; open the last experiment's
     # file in an image viewer. A bit tricky when there's multiple files
@@ -511,9 +515,11 @@ class MainWindow(wx.Frame):
         self.SetStatusBar(StatusLights(parent=self))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(panel, 1, wx.EXPAND)
-        sizer.Layout()
+        sizer.Add(panel, 1, wx.EXPAND | wx.ALL, 0)
+        # sizer.Layout()
+        sizer.SetSizeHints(self)
         self.SetSizerAndFit(sizer)
+        self.Layout()
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
