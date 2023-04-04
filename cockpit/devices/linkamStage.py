@@ -247,11 +247,11 @@ class LinkamStage(MicroscopeBase, Device):
         self.panel = wx.Panel(parent, style=wx.BORDER_RAISED)
         self.panel.SetDoubleBuffered(True)
         panel = self.panel
-        panel.Sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         left_sizer = wx.BoxSizer(wx.VERTICAL)
         right_sizer = wx.BoxSizer(wx.VERTICAL)
-        panel.Sizer.Add(left_sizer)
-        panel.Sizer.Add(right_sizer)
+        sizer.Add(left_sizer)
+        sizer.Add(right_sizer)
 
         self.elements = {}
         lightButton = wx.ToggleButton(panel, wx.ID_ANY, "light")
@@ -281,7 +281,7 @@ class LinkamStage(MicroscopeBase, Device):
                 self.elements[r].setRefillFunc(self._proxy.refill_chamber)
             elif r == 'external':
                 self.elements[r].setRefillFunc(self._proxy.refill_dewar)
-        panel.Fit()
+        panel.SetSizerAndFit(sizer)
         return panel
 
 
