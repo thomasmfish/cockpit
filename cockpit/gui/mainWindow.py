@@ -192,18 +192,16 @@ class MainWindowPanel(wx.Panel):
                 rowSizer.Add(itemsizer, 0)
         rowSizer.Layout()
 
-        root_sizer.Add(rowSizer, 0, wx.EXPAND)
+        root_sizer.Add(rowSizer, 0)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
         lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
-        channels_panel = mainPanels.ChannelsPanel(self)
-        lights_sizer.Add(channels_panel, 1, wx.EXPAND)
-        channels_panel.update_height_limit()
+        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, wx.EXPAND)
         lights_sizer.Layout()
 
-        root_sizer.Add(lights_sizer, 0, wx.EXPAND)
-        
+        root_sizer.Add(lights_sizer, 0)
+
         root_sizer.Layout()
 
         self.SetSizerAndFit(root_sizer)
@@ -216,8 +214,9 @@ class MainWindowPanel(wx.Panel):
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnSize(self, event: wx.SizeEvent) -> None:
-        self.Layout()
-        self.SetMinSize(self.GetSizer().GetMinSize())
+        sizer = self.GetSizer()
+        sizer.Layout()
+        self.SetMinSize(sizer.GetMinSize())
         event.Skip()
 
     ## User clicked the "view last file" button; open the last experiment's
