@@ -249,10 +249,10 @@ class FilterControls(wx.Panel):
 
         for f in filters:
             subpanel_sizer.Add(f.makeUI(subpanel), 0,
-                               wx.EXPAND | wx.LEFT | wx.BOTTOM, 8)
+                               wx.EXPAND | wx.ALL, 4)
         subpanel_sizer.Layout()
         subpanel.SetSizerAndFit(subpanel_sizer)
-        self.Sizer.Add(subpanel, 0, wx.EXPAND)
+        self.Sizer.Add(subpanel, 0, wx.EXPAND, wx.LEFT | wx.RIGHT, 4)
         self.Sizer.Layout()
         self.SetSizerAndFit(self.Sizer)
 
