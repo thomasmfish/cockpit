@@ -258,10 +258,16 @@ class FilterControls(wx.Panel):
 
 
 class ChannelsPanel(wx.Panel):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         label = PanelLabel(self, label="Channels")
         self._buttons_sizer = wx.WrapSizer(wx.VERTICAL)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(label, 0)
+        sizer.Add(self._buttons_sizer, proportion=1, flag=wx.EXPAND)
+        sizer.Layout()
+        self.SetSizer(sizer)
 
         for name in wx.GetApp().Channels.Names:
             self.AddButton(name)
@@ -271,29 +277,40 @@ class ChannelsPanel(wx.Panel):
         wx.GetApp().Channels.Bind(cockpit.interfaces.channels.EVT_CHANNEL_REMOVED,
                                   self.OnChannelRemoved)
 
-        self._buttons_sizer.Layout()
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(label, 0)
-        sizer.Add(self._buttons_sizer, proportion=1, flag=wx.EXPAND)
-        sizer.Layout()
-        self.SetSizerAndFit(sizer)
-
-    def update_height_limit(self):
+    def _LayoutWithFrame(self):
+        self.Layout()
+        # When we add a new button, we may require a new column.  When
+        # that happens, it's not enough to call Layout(), the parent
+        # sizer also needs to make space for our new needs, which
+        # comes all the way up from the frame sizer itself, which is
+        # why also call Layout() on the Frame. See
+        # https://stackoverflow.com/questions/62411713
         frame = wx.GetTopLevelParent(self)
         frame.Layout()
-        self.SetMaxSize((-1, frame.GetMinSize()[1]))
+        # But even calling Layout() on the frame may not be enough if
+        # the frame itself needs to be resized.  But we can't just
+        # call Fit() otherwise we may shrink the window.  We only want
+        # to make it wider if required.
+        size = frame.GetSize()
+        best_size = frame.GetBestSize()
+        if best_size[0] > size[0]:
+            width = best_size[0]
+            height = size[1]
+            frame.SetSize(width, height)
 
     def AddButton(self, name: str) -> None:
         button = wx.Button(self, label=name)
         button.Bind(wx.EVT_BUTTON, self.OnButton)
         self._buttons_sizer.Add(button, 0, wx.EXPAND)
         self.Layout()
+        self._LayoutWithFrame()
 
     def RemoveButton(self, name: str) -> None:
         button = self.GetButtonByLabel(name)
         self._buttons_sizer.Detach(button)
         button.Destroy()
         self.Layout()
+        self._LayoutWithFrame()
 
     def GetButtonByLabel(self, name: str) -> wx.Button:
         for sizer_item in self._buttons_sizer.Children:
