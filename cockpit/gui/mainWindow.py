@@ -192,15 +192,15 @@ class MainWindowPanel(wx.Panel):
                 rowSizer.Add(itemsizer, 0)
         rowSizer.Layout()
 
-        root_sizer.Add(rowSizer, 0)
+        root_sizer.Add(rowSizer, 0, wx.EXPAND)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
         lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
         channels_panel = mainPanels.ChannelsPanel(self)
         lights_sizer.Add(channels_panel, 1, wx.EXPAND)
-        lights_sizer.Layout()
         channels_panel.update_height_limit()
+        lights_sizer.Layout()
 
         root_sizer.Add(lights_sizer, 0, wx.EXPAND)
         
