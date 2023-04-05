@@ -272,7 +272,7 @@ class ChannelsPanel(wx.Panel):
                                   self.OnChannelRemoved)
 
         self._buttons_sizer.Layout()
-        sizer = wx.StaticBoxSizer(wx.VERTICAL, self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label, 0)
         sizer.Add(self._buttons_sizer, proportion=1, flag=wx.EXPAND)
         sizer.Layout()
