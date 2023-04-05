@@ -276,7 +276,6 @@ class BoulderSLM(device.Device):
     ### UI functions ###
     def makeUI(self, parent):
         panel = wx.Panel(parent, style=wx.BORDER_RAISED)
-        panel.SetDoubleBuffered(True)
         sizer = wx.BoxSizer(wx.VERTICAL)
         powerButton = cockpit.gui.device.EnableButton(panel, self.handler)
         sizer.Add(powerButton, 0, wx.EXPAND)
