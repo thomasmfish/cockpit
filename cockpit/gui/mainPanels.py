@@ -272,28 +272,16 @@ class ChannelsPanel(wx.Panel):
                                   self.OnChannelRemoved)
 
         self._buttons_sizer.Layout()
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.StaticBoxSizer(wx.VERTICAL, self)
         sizer.Add(label, 0)
-        sizer.Add(self._buttons_sizer, proportion=0, flag=wx.EXPAND)
+        sizer.Add(self._buttons_sizer, proportion=1, flag=wx.EXPAND)
         sizer.Layout()
         self.SetSizerAndFit(sizer)
 
-    def Layout(self):
-        # When we add a new button, we may require a new column.  When
-        # that happens, it's not enough to call Layout(), the parent
-        # sizer also needs to make space for our new needs, which
-        # comes all the way up from the frame sizer itself, which is
-        # why also call Layout() on the Frame. See
-        # https://stackoverflow.com/questions/62411713
+    def update_height_limit(self):
         frame = wx.GetTopLevelParent(self)
         frame.Layout()
-        # But even calling Layout() on the frame may not be enough if
-        # the frame itself needs to be resized.  But we can't just
-        # call Fit() otherwise we may shrink the window.  We only want
-        # to make it wider if required.
-        if frame.BestSize[1] > frame.Size[1]:
-            frame.SetSize(frame.Size[0], frame.BestSize[1])
-        super().Layout()
+        self.SetMaxSize((-1, frame.GetMinSize()[1]))
 
     def AddButton(self, name: str) -> None:
         button = wx.Button(self, label=name)
