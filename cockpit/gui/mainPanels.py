@@ -116,7 +116,7 @@ class LightControlsPanel(wx.Panel):
             power = next(filter(lambda p: p.groupName == light.groupName, lightPowers), None)
             filters = list(filter(lambda f: light.name in f.lights, lightFilters) )
             panel = LightPanel (self, light, power, filters)
-            sz.Add(panel)
+            sz.Add(panel, 1)
             self.panels[light] = panel
             sz.AddSpacer(4)
         sz.Layout()
