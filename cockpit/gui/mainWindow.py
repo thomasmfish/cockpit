@@ -170,7 +170,7 @@ class MainWindowPanel(wx.Panel):
         ignoreThings.extend(lightfilters)
 
         # Add filterwheel controls.
-        rowSizer.Add(mainPanels.FilterControls(self))
+        rowSizer.Add(mainPanels.FilterControls(self), 0)
 
         # Make the UI elements for eveything else.
         for thing in ignoreThings:
@@ -183,28 +183,41 @@ class MainWindowPanel(wx.Panel):
             item = thing.makeUI(self)
             if item is not None:
                 itemsizer = wx.BoxSizer(wx.VERTICAL)
-                itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name))
-                itemsizer.Add(item, 0, wx.EXPAND)
+                itemsizer.Add(cockpit.gui.mainPanels.PanelLabel(self, thing.name), 0)
+                itemsizer.Add(item, 0)
+                itemsizer.Layout()
                 if rowSizer.GetChildren():
                     # Add a spacer.
                     rowSizer.AddSpacer(COL_SPACER)
-                rowSizer.Add(itemsizer, 1, flag=wx.EXPAND)
+                rowSizer.Add(itemsizer, 0)
+        rowSizer.Layout()
 
-        root_sizer.Add(rowSizer, 1, flag=wx.EXPAND)
+        root_sizer.Add(rowSizer, 0)
         root_sizer.AddSpacer(ROW_SPACER)
 
         lights_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0, flag=wx.EXPAND)
-        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, flag=wx.EXPAND)
-        root_sizer.Add(lights_sizer, 1, flag=wx.EXPAND)
-        self.SetSizer(root_sizer)
-        self.Layout()
+        lights_sizer.Add(mainPanels.LightControlsPanel(self), 0)
+        lights_sizer.Add(mainPanels.ChannelsPanel(self), 0, wx.EXPAND)
+        lights_sizer.Layout()
+
+        root_sizer.Add(lights_sizer, 0)
+
+        root_sizer.Layout()
+
+        self.SetSizerAndFit(root_sizer)
 
         keyboard.setKeyboardHandlers(self)
         self.joystick = joystick.Joystick(self)
 
         self.SetDropTarget(viewFileDropTarget.ViewFileDropTarget(self))
 
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def OnSize(self, event: wx.SizeEvent) -> None:
+        sizer = self.GetSizer()
+        sizer.Layout()
+        self.SetMinSize(sizer.GetMinSize())
+        event.Skip()
 
     ## User clicked the "view last file" button; open the last experiment's
     # file in an image viewer. A bit tricky when there's multiple files
@@ -503,10 +516,11 @@ class MainWindow(wx.Frame):
         self.SetStatusBar(StatusLights(parent=self))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(panel, 1, flag=wx.EXPAND | wx.ALL)
-        sizer.Layout()
+        sizer.Add(panel, 1, wx.EXPAND | wx.ALL, 0)
+        # sizer.Layout()
         sizer.SetSizeHints(self)
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
+        self.Layout()
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 

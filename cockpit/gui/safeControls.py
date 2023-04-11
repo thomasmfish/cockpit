@@ -158,10 +158,10 @@ class SafeSpinCtrlDouble(SafeControl, wx.Panel):
         self.te.SetValidator(FloatValidator())
         sb = wx.SpinButton(self)
         self.Sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.Sizer.Add(self.te, proportion=1)
-        self.Sizer.Add(sb, proportion=0)
-        self.Fit()
+        self.Sizer.Add(self.te, proportion=1, flag=wx.EXPAND)
         sb.MaxSize = (-1, te.Size[-1])
+        self.Sizer.Add(sb, proportion=0)
+        self.SetSizerAndFit(self.Sizer)
         # initialise _committed
         self.SetValue(value)
         # initialise text control
@@ -643,7 +643,11 @@ class SetPointGauge(SafeControl, wx.Window):
         n = 40
         while dg < 16:
             n = n // 2
-            dg = rect.Size[self._vertical] / n
+            vert = rect.Size[self._vertical]
+            if vert == 0:
+                dg = 16
+            else:
+                dg = vert / n
         if self._vertical:
             lines = [(2, min(rect.height - 1, int(i * dg)), rect.width - 2,
                       min(rect.height - 1, int(i * dg))) for i in range(1, n)]
@@ -756,8 +760,8 @@ class SpinGauge(wx.Panel):
                                      minValue=float(minValue), maxValue=float(maxValue), inc=increment)
         slider = SetPointGauge(self, minValue=minValue, maxValue=maxValue, fetch_current=fetch_current)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(spinner, 1, flag=wx.EXPAND)
-        sizer.Add(slider, 1, flag=wx.EXPAND)
+        sizer.Add(spinner, 0, flag=wx.EXPAND)
+        sizer.Add(slider, 0, flag=wx.EXPAND)
         sizer.Layout()
 
         self.SetSizerAndFit(sizer)

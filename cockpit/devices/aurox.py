@@ -112,47 +112,48 @@ class Clarity(microscopeDevice.MicroscopeFilter):
         # when the Clarity is not enabled, it will not change the filter, and
         # will redisplay its original state within 1 second.
         outer = wx.Panel(parent, style=wx.BORDER_RAISED)
-        outer.Sizer = wx.BoxSizer(wx.VERTICAL)
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
         panel = wx.Panel(outer)
-        panel.Sizer = wx.BoxSizer(wx.VERTICAL)
+        panel_sizer = wx.BoxSizer(wx.VERTICAL)
         # power button
         powerhandler = next(h for h in self.handlers if isinstance(h, ClaritySlideHandler))
         enable = cockpit.gui.device.EnableButton(outer, powerhandler)
         enable.SetLabel("enable")
-        outer.Sizer.Add(enable, flag=wx.EXPAND)
+        outer_sizer.Add(enable, flag=wx.EXPAND)
         enable.manageStateOf(panel)
         # Subpanel
-        outer.Sizer.Add(panel)
+        outer_sizer.Add(panel)
         # slide selector
-        panel.Sizer.AddSpacer(4)
-        panel.Sizer.Add(wx.StaticText(panel, label='sectioning'))
-        panel.Sizer.Add(powerhandler.makeSelector(panel), flag=wx.EXPAND)
+        panel_sizer.AddSpacer(4)
+        panel_sizer.Add(wx.StaticText(panel, label='sectioning'))
+        panel_sizer.Add(powerhandler.makeSelector(panel), flag=wx.EXPAND)
         # # filter selector -- moved to filters panel
-        # panel.Sizer.AddSpacer(4)
-        # panel.Sizer.Add(wx.StaticText(panel, label='filter'))
+        # panel_sizer.AddSpacer(4)
+        # panel_sizer.Add(wx.StaticText(panel, label='filter'))
         # filterhandler = next(h for h in self.handlers if h is not powerhandler)
-        # panel.Sizer.Add(filterhandler.makeSelector(panel), flag=wx.EXPAND)
+        # panel_sizer.Add(filterhandler.makeSelector(panel), flag=wx.EXPAND)
         # Additional buttons
-        panel.Sizer.AddSpacer(4)
+        panel_sizer.AddSpacer(4)
         self.buttons = {}
         # Mode selector
-        panel.Sizer.AddSpacer(4)
-        panel.Sizer.Add(wx.StaticText(panel, label='Mode'))
+        panel_sizer.AddSpacer(4)
+        panel_sizer.Add(wx.StaticText(panel, label='Mode'))
         mode_selector = cockpit.gui.device.EnumChoice(panel)
         mode_selector.Set(self.describe_setting('mode')['values'])
         self.buttons['mode'] = mode_selector
         from functools import partial
         mode_selector.setOnChoice(partial(self.set_setting, 'mode'))
-        panel.Sizer.Add(mode_selector)
+        panel_sizer.Add(mode_selector)
         # door status indicator
         cb = wx.CheckBox(panel, wx.ID_ANY, "door open")
         cb.Disable()
         self.buttons['door'] = cb
-        panel.Sizer.Add(cb)
+        panel_sizer.Add(cb)
+        panel_sizer.Add(panel_sizer)
         # Start a timer to report connection errors.
         self._timer = wx.Timer(panel)
         self._timer.Start(1000)
         panel.Bind(wx.EVT_TIMER, self.checkStatus, self._timer)
-        panel.Fit()
+        outer.SetSizerAndFit(outer_sizer)
         self.panel = panel
         return outer

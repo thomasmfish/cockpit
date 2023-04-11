@@ -79,8 +79,7 @@ class FilterHandler(deviceHandler.DeviceHandler):
 
     ### UI functions ####
     def makeSelector(self, parent):
-        ctrl = wx.Choice(parent)
-        ctrl.Set(list(map(str, self.filters)))
+        ctrl = wx.Choice(parent, choices=list(map(str, self.filters)))
         ctrl.Bind(wx.EVT_CHOICE, lambda evt: self.setFilter(self.filters[evt.Selection]))
         self.addWatch('lastFilter', lambda f: ctrl.SetSelection(ctrl.FindString(str(f))))
         ctrl.SetSelection(ctrl.FindString(str(self.lastFilter)))
@@ -89,9 +88,10 @@ class FilterHandler(deviceHandler.DeviceHandler):
 
     def makeUI(self, parent):
         panel = wx.Panel(parent)
-        panel.Sizer = wx.BoxSizer(wx.VERTICAL)
-        panel.Sizer.Add(wx.StaticText(panel, label=self.name))
-        panel.Sizer.Add(self.makeSelector(panel), flag=wx.EXPAND)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(wx.StaticText(panel, label=self.name))
+        sizer.Add(self.makeSelector(panel), 0, wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
         return panel
 
 
