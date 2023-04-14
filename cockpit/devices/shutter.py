@@ -67,10 +67,15 @@ class ShutterDevice(device.Device):
             print("Shutter %s disabled." % self.name)
 
 
-    def onLightSourceEnable(self, handler, enab):
-        if handler in self.lights and enab == any([l.getIsEnabled() for l in self.lights]):
-            # All of our lights are disabled or any is enabled
-            self.enableTrigger(enab)
+    def onLightSourceEnable(self, handler, enable):
+        # Only update the shutter if the handler's light is configured to use the shutter
+        if handler in self.lights:
+            shutter_in_use = any([l.getIsEnabled() for l in self.lights])
+            # Only change the state of the shutter as required
+            # i.e. it can be enabled if enable it if any related light is
+            # enabled or disabled if all the related lights are disabled
+            if enable is shutter_in_use:
+                self.enableTrigger(enable)
 
 
     def setExposureTime(self, t):
