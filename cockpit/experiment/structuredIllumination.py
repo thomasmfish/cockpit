@@ -66,6 +66,7 @@ import os
 import tempfile
 import shutil
 import wx
+from uuid import uuid4
 
 ## Provided so the UI knows what to call this experiment.
 EXPERIMENT_NAME = 'Structured Illumination'
@@ -483,10 +484,13 @@ class SIExperiment(experiment.Experiment):
 
         ## Windows needs to have the file removed first and be copied to properly set permissions.
         if os.name == "nt":
+            save_path, file_extension = os.path.splitext(self.savePath)
+            intermediate_file = f"{save_path}_reordered_{uuid4()}{file_extension}"
+            shutil.move(tmp_fh.name, intermediate_file)
+            # Copying the mode while it's in the target folder might work for inherited permissions
+            shutil.copymode(self.savePath, intermediate_file)
             os.remove(self.savePath)
-            # Copy without permissions (inherits permissions from destination)
-            shutil.copyfile(tmp_fh.name, self.savePath)
-            os.remove(tmp_fh.name)
+            shutil.move(intermediate_file, self.savePath)
         else:
             # Copy permissions to new file
             shutil.copymode(self.savePath, tmp_fh.name)
