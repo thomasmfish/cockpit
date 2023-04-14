@@ -67,6 +67,11 @@ import tempfile
 import shutil
 import wx
 
+running_on_windows = os.name == "nt"
+
+if running_on_windows:
+    import win32security
+
 ## Provided so the UI knows what to call this experiment.
 EXPERIMENT_NAME = 'Structured Illumination'
 
@@ -481,16 +486,18 @@ class SIExperiment(experiment.Experiment):
         del doc
         del img_data
 
-        ## Windows needs to have the file removed first and be copied to properly set permissions.
-        if os.name == "nt":
+        # Copy permissions to new file
+        shutil.copymode(self.savePath, tmp_fh.name)
+
+        if running_on_windows:
+            sd = win32security.GetFileSecurity(self.savePath, win32security.DACL_SECURITY_INFORMATION)
             os.remove(self.savePath)
-            # Copy without permissions (inherits permissions from destination)
-            shutil.copyfile(tmp_fh.name, self.savePath)
-            os.remove(tmp_fh.name)
-        else:
-            # Copy permissions to new file
-            shutil.copymode(self.savePath, tmp_fh.name)
-            shutil.move(tmp_fh.name, self.savePath)     
+
+        shutil.move(tmp_fh.name, self.savePath)     
+
+        if running_on_windows:
+            win32security.SetFileSecurity(self.savePath, sd, win32security.DACL_SECURITY_INFORMATION)
+
         return
 
 

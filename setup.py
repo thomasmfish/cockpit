@@ -73,6 +73,7 @@ setuptools.setup(
         'pyserial',
         'scipy',
         'wxPython>=4.1',
+        'pywin32;platform_system==\'Windows\''
     ],
 
     test_suite = 'cockpit.testsuite',
