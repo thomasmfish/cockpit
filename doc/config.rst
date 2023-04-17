@@ -76,6 +76,10 @@ data-dir
   several path substutution options: `{user}`, `{year}`, `{date}`, 
   and `{time}`, allowing some customisation beyond a static path.
 
+user-subdir
+  Defaults to True. If True, data will be saved to a subdirectory of the 
+  current user's username within the specified data directory. This maintains
+  the previous saving behaviour while giving an option to switch it off.
 
 depot-files
   List of files to use for the device depot.  See :ref:`depot-config`.

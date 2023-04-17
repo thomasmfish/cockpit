@@ -52,6 +52,8 @@
 
 import getpass
 import time
+import os.path
+import traceback
 
 ## @package util.files
 # This module contains file-related functions and constants.
@@ -80,8 +82,17 @@ def substitute_patterns(filepath):
 def initialize(config):
     global _DATA_DIR
     global _LOGS_DIR
-    _DATA_DIR = substitute_patterns(config.getpath("global", "data-dir"))
+    user_subdir = config.getboolean("global", "user-subdir")
+    data_dir_pattern = config.getpath("global", "data-dir")
+    if user_subdir:
+        data_dir_pattern = os.path.join(data_dir_pattern, "{user}")
+    _DATA_DIR = substitute_patterns(data_dir_pattern)
+    if user_subdir:
+        # Only ensure the specific user subdirectory directory is created
+        _ensureDirectoryExists(_DATA_DIR, create_parents=False)
+    
     _LOGS_DIR = substitute_patterns(config.getpath('log', 'dir'))
+    _ensureDirectoryExists(_LOGS_DIR, create_parents=True)
 
 ## Get the directory in which all users' directories are located
 def getDataDir():
@@ -90,3 +101,15 @@ def getDataDir():
 ## Return the directory in which logfiles are stored
 def getLogDir():
     return _LOGS_DIR
+
+def _ensureDirectoryExists(directory, create_parents=False):
+    if not os.path.exists(directory):
+        try:
+            print(f"Making {directory}")
+            if create_parents:
+                os.makedirs(directory)
+            else:
+                os.mkdir(directory)
+        except Exception:
+            print(f"Failed to make directory {directory}")
+            traceback.print_exc()

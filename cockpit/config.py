@@ -156,6 +156,7 @@ def _default_cockpit_config():
             'channel-files' : '',
             'config-dir' : _default_user_config_dir(),
             'data-dir' : _default_user_data_dir(),
+            'user-subdir' : True,
             ## The default value of 'depot-files' is only set after
             ## reading the cockpit config files and will also be
             ## dependent on command line options.
