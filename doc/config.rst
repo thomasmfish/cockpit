@@ -73,11 +73,11 @@ config-dir
 
 data-dir
   Directory for the default location to save image data. This has 
-  several path substutution options: `{user}`, `{year}`, `{date}`, 
+  several path substitution options: `{user}`, `{year}`, `{date}`, 
   and `{time}`, allowing some customisation beyond a static path.
 
 user-subdir
-  Defaults to True. If True, data will be saved to a subdirectory of the 
+  Defaults to True. If True, data will be saved to a subdirectory of the
   current user's username within the specified data directory. This maintains
   the previous saving behaviour while giving an option to switch it off.
 
@@ -100,7 +100,7 @@ level
 
 dir
   Directory to create new log files. This allows the same path
-  substututions as data-dir.
+  substitutions as data-dir.
 
 stage section
 `````````````
