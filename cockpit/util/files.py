@@ -82,14 +82,13 @@ def substitute_patterns(filepath):
 def initialize(config):
     global _DATA_DIR
     global _LOGS_DIR
-    user_subdir = config.getboolean("global", "user-subdir")
     data_dir_pattern = config.getpath("global", "data-dir")
-    if user_subdir:
+    if config.getboolean("global", "user-subdir"):
         data_dir_pattern = os.path.join(data_dir_pattern, "{user}")
     _DATA_DIR = substitute_patterns(data_dir_pattern)
-    if user_subdir:
+    if config.getboolean("global", "create-data-dir"):
         # Only ensure the specific user subdirectory directory is created
-        _ensureDirectoryExists(_DATA_DIR, create_parents=False)
+        _ensureDirectoryExists(_DATA_DIR, create_parents=True)
     
     _LOGS_DIR = substitute_patterns(config.getpath('log', 'dir'))
     _ensureDirectoryExists(_LOGS_DIR, create_parents=True)
@@ -102,7 +101,7 @@ def getDataDir():
 def getLogDir():
     return _LOGS_DIR
 
-def _ensureDirectoryExists(directory, create_parents=False):
+def _ensureDirectoryExists(directory, create_parents=True):
     if not os.path.exists(directory):
         try:
             print(f"Making {directory}")

@@ -76,6 +76,10 @@ data-dir
   several path substitution options: `{user}`, `{year}`, `{date}`, 
   and `{time}`, allowing some customisation beyond a static path.
 
+create-data-dir
+  Defaults to True. If True, Cockpit will try to create the default data 
+  directory when starting up, if it does not already exist.
+
 user-subdir
   Defaults to True. If True, data will be saved to a subdirectory of the
   current user's username within the specified data directory. This maintains
