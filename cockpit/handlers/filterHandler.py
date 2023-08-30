@@ -47,7 +47,7 @@ class Filter:
             else:
                 self.value = None
 
-            
+
     def __repr__(self):
         if self.value:
             return '%d: %s, %s' % (self.position, self.label, self.value)
@@ -79,12 +79,19 @@ class FilterHandler(deviceHandler.DeviceHandler):
 
     ### UI functions ####
     def makeSelector(self, parent):
-        ctrl = wx.Choice(parent, choices=list(map(str, self.filters)))
-        ctrl.Bind(wx.EVT_CHOICE, lambda evt: self.setFilter(self.filters[evt.Selection]))
-        self.addWatch('lastFilter', lambda f: ctrl.SetSelection(ctrl.FindString(str(f))))
-        ctrl.SetSelection(ctrl.FindString(str(self.lastFilter)))
-        return ctrl
+        self.ctrl = wx.Choice(parent, choices=list(map(str, self.filters)))
+        self.ctrl.Bind(wx.EVT_CHOICE, lambda evt: self.setFilter(self.filters[evt.Selection]))
+        self.addWatch('lastFilter', self.setFromName)
+        self.ctrl.Bind(wx.EVT_WINDOW_DESTROY, self.OnSelectorDestroy)
+        self.ctrl.SetSelection(self.ctrl.FindString(str(self.lastFilter)))
+        return self.ctrl
 
+    def setFromName(self, name):
+        self.ctrl.SetSelection(self.ctrl.FindString(str(name)))
+
+    def OnSelectorDestroy(self, event: wx.WindowDestroyEvent) -> None:
+        self.removeWatch('lastFilter', self.setFromName)
+        event.Skip()
 
     def makeUI(self, parent):
         panel = wx.Panel(parent)

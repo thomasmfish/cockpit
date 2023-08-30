@@ -43,6 +43,7 @@ For connection via a controller::
 
 """
 
+import collections.abc
 import typing
 
 import Pyro4
@@ -184,7 +185,6 @@ class MicroscopeBase(device.Device):
             # on the handler. The handler should probably expose the
             # settings interface.
             self.setAnyDefaults()
-            import collections.abc
             if self.handlers and isinstance(self.handlers, collections.abc.Sequence):
                 h = self.handlers[0]
             elif self.handlers:
@@ -584,38 +584,20 @@ class MicroscopeStage(MicroscopeBase):
                                 % their_axis_name)
         #check if we need to poll for updates of position
         #This is usually required as there is a manual joystick which can move
-        #the stage without cokcoit knowing about it.
+        #the stage without cockit knowing about it.
+        #Note: currently this varibale isnt checked, all stages are polled
+        #in macrostageXY.
         self.pollStage = bool(self.config.get('poll-stage',False))
         if (self.pollStage):
-            print(self.config.get('num-stage-axes',0))
             if len(self._axes) == int(self.config.get('num-stage-axes',0)):
                 #need to know in advance how many axis need to initilized
                 self.pollInterval=float(self.config.get('poll-interval',10))
                 self._positionCache = [0.0 for x in range(len(self._axes))]
-                self.updatePosThread()
             
     def getHandlers(self) -> typing.List[PositionerHandler]:
         # Override MicroscopeBase.getHandlers.  Do not call super.
         return [x.getHandler() for x in self._axes]
 
-
-    #thread to interogate stage regularly to see if it moves manually
-    @cockpit.util.threads.callInNewThread
-    def updatePosThread(self):
-        handlers=self.getHandlers()
-        print("stage-pos",self._positionCache)
-        while True:
-            print("stage poll")
-            for i,handler in enumerate(handlers):
-                newpos=handler.getPosition()
-  #              print (i,self._positionCache[i])
-                if newpos != self._positionCache[i]:
-                    self._positionCache[i]=newpos
-                    events.publish(events.STAGE_POSITION, i, newpos)
-            time.sleep(self.pollInterval)
-            
-
-    
 class MicroscopeDIO(MicroscopeBase):
     """Device class for asynchronous Digital Inout and Output signals.
     This class enables the configuration of named buttons in main GUI window
@@ -881,7 +863,7 @@ class DIOOutputWindow(wx.Frame):
 
 
 class MicroscopeValueLogger(MicroscopeBase):
-    """Device class for asynchronous Digital Inout and Output signals.
+    """Device class for asynchronous Digital Input and Output signals.
     This class enables the configuration of named buttons in main GUI window
     to control for situation such a switchable excitation paths.
 
@@ -902,6 +884,9 @@ class MicroscopeValueLogger(MicroscopeBase):
         self._cache = [False]*self.numSensors
         self.labels = [""]*self.numSensors
         labels = self.config.get('labels',None)
+        ##do we get data pushed or do we pull it from the remote. 
+        self.pullData = self.config.get('pulldata',False)
+        self.pollInterval = int(self.config.get('pollinterval',20))
         ##extract names of lines from file, too many are ignored,
         ## too few are padded with str(line number)
         templabels=[]
@@ -913,31 +898,53 @@ class MicroscopeValueLogger(MicroscopeBase):
             else:
                 self.labels[i]=("Sensor %d" %i)
         # Lister to receive data back from hardware
-        self.listener = cockpit.util.listener.Listener(self._proxy,
+        if not self.pullData:
+            #data is pushed so we need the start a listerner to receive the data
+            self.listener = cockpit.util.listener.Listener(self._proxy,
                                                lambda *args:
                                                        self.receiveData(*args))
-        #log to record line state chnages
-        self.logger = valueLogger.ValueLogger(self.name,
-                    keys=self.labels)
+            #log to record line state chnages
+            self.logger = valueLogger.ValueLogger(self.name,
+                                                  keys=self.labels)
+        else:
+            self.logger = valueLogger.PollingLogger(self.name,
+                                                     self.pollInterval,
+                                                     self.getRemoteValues,
+                                                     keys=self.labels)
+
         self.enable(True)
         
     def receiveData(self, *args):
-        """This function is called sensors return data from 
-        the hardware."""
+        """This function is called when sensors push data from the remote and 
+        return data from the hardware."""
         (data,timestamp) = args
         events.publish(events.VALUELOGGER_INPUT,data)
         self.logger.log(data)
+
+    def getRemoteValues(self):
+        """This calls the remote getValues() function to 
+        pull data from the remote hardware."""
+        data=self._proxy.getValues()
+        events.publish(events.VALUELOGGER_INPUT,data)
+        return(data)
         
-
-
     def enable(self,state):
         if state:
             self._proxy.enable()
-            self.listener.connect()
+            if not self.pullData:
+                self.listener.connect()
             return(True)
         else:
             self._proxy.disable()
-            self.listener.disconnect()
+            if not self.pullData:
+                self.listener.disconnect()
+            else:
+                # Is this a race condition should we stop the event then
+                # disable the proxy?
+                self.logger.__stopEvent.set()
             return(False)
 
+    #ensure we stop the polling if we are shutting down. 
+    def onExit(self):
+        self.enable(False)
 

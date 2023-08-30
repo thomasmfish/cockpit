@@ -55,7 +55,7 @@ from cockpit import events
 from . import immediateMode
 import cockpit.interfaces.imager
 import cockpit.interfaces.stageMover
-import cockpit.util.user
+import cockpit.util.files
 
 import numpy
 import os
@@ -81,8 +81,8 @@ class MyExperiment(immediateMode.ImmediateModeExperiment):
         # data to. The experiment assumes we're
         # using the currently-active cameras and light sources for setting
         # up the output data file.
-        # Here we do 5 reps, with a 4s duration, and 1 image per rep. The 
-        # file will get saved as "out.mrc" in the current user's data 
+        # Here we do 5 reps, with a 4s duration, and 1 image per rep. The
+        # file will get saved as "out.mrc" in the current user's data
         # directory.
         savePath = os.path.join(cockpit.util.user.getDataDir(), "out.mrc")
         print ("Saving file to",savePath)
@@ -139,7 +139,7 @@ class MyExperiment(immediateMode.ImmediateModeExperiment):
 
         # Get another light source. The "\n" in the name is a newline, which
         # was inserted (when this light source handler was created) to make
-        # the light control button look nice. 
+        # the light control button look nice.
         laser488 = depot.getHandlerWithName("488\nlight")
 
         # Set this light source to be enabled when we take images.
@@ -148,7 +148,7 @@ class MyExperiment(immediateMode.ImmediateModeExperiment):
         # I don't know how well enabling multiple lasers simultaneously works.
         # Note: lasers, the DIA light source, and the EPI light source, are
         # mutually exclusive as they use different shutters and only one
-        # shutter can be active at a time for some unknown reason. 
+        # shutter can be active at a time for some unknown reason.
         laser488.setEnabled(True)
 
         # Take images, using all current active camera views and light
@@ -181,7 +181,7 @@ class MyExperiment(immediateMode.ImmediateModeExperiment):
         # Move to a new XY position.
         # Note: the goToXY function expects a "tuple" for the position,
         # hence the extra parentheses (i.e. "goToXY(x, y)" is invalid;
-        # "goToXY((x, y))" is correct). 
+        # "goToXY((x, y))" is correct).
         cockpit.interfaces.stageMover.goToXY((curX + 50, curY - 50), shouldBlock = True)
 
         # Get the device responsible for the dichroics and light sources

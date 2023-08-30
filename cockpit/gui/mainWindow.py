@@ -80,6 +80,8 @@ import cockpit.util.files
 import cockpit.util.userConfig
 from cockpit.gui import viewFileDropTarget
 from cockpit.gui import mainPanels
+from cockpit.util import valueLogger
+from cockpit.util import csv_plotter
 
 
 ROW_SPACER = 12
@@ -90,7 +92,7 @@ class MainWindowPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Find out what devices we have to work with.
-        lightToggles = depot.getHandlersOfType(depot.LIGHT_TOGGLE)
+        lightToggles = wx.GetApp().Depot.getHandlersOfType(depot.LIGHT_TOGGLE)
 
         ## Maps LightSource handlers to their associated panels of controls.
         self.lightToPanel = dict()
@@ -138,19 +140,19 @@ class MainWindowPanel(wx.Panel):
         # Make UIs for any other handlers / devices and insert them into
         # our window, if possible.
         # Light power things will be handled later.
-        lightPowerThings = depot.getHandlersOfType(depot.LIGHT_POWER)
+        lightPowerThings = wx.GetApp().Depot.getHandlersOfType(depot.LIGHT_POWER)
         lightPowerThings.sort(key = lambda l: l.wavelength)
         # Camera UIs are drawn separately. Currently, they are drawn first,
         # but this separation may make it easier to implement cameras in
         # ordered slots, giving the user control over exposure order.
-        cameraThings = depot.getHandlersOfType(depot.CAMERA)
+        cameraThings = wx.GetApp().Depot.getHandlersOfType(depot.CAMERA)
         # Ignore anything that is handled specially.
         ignoreThings = lightToggles + lightPowerThings
         ignoreThings += cameraThings
         # Remove ignoreThings from the full list of devices.
-        otherThings = list(depot.getAllDevices())
+        otherThings = list(wx.GetApp().Depot.getAllDevices())
         otherThings.sort(key = lambda d: d.__class__.__name__)
-        otherThings.extend(depot.getAllHandlers())
+        otherThings.extend(wx.GetApp().Depot.getAllHandlers())
         rowSizer = wx.WrapSizer(wx.HORIZONTAL)
 
         # Add objective control
@@ -166,7 +168,7 @@ class MainWindowPanel(wx.Panel):
         rowSizer.AddSpacer(COL_SPACER)
 
         # Add light controls.
-        lightfilters = sorted(depot.getHandlersOfType(depot.LIGHT_FILTER))
+        lightfilters = sorted(wx.GetApp().Depot.getHandlersOfType(depot.LIGHT_FILTER))
         ignoreThings.extend(lightfilters)
 
         # Add filterwheel controls.
@@ -177,7 +179,7 @@ class MainWindowPanel(wx.Panel):
             if thing in otherThings:
                 otherThings.remove(thing)
         for thing in sorted(otherThings):
-            if depot.getHandler(thing, depot.CAMERA):
+            if wx.GetApp().Depot.getHandler(thing, depot.CAMERA):
                 # Camera UIs already drawn.
                 continue
             item = thing.makeUI(self)
@@ -213,11 +215,48 @@ class MainWindowPanel(wx.Panel):
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
+        #subscribe to camera UPDATE_ROI events so we can ask to apply it to all
+        #cameras or not.
+        self.updateROI = False
+        events.subscribe(events.UPDATE_ROI, self.updateCamROI)
+
     def OnSize(self, event: wx.SizeEvent) -> None:
         sizer = self.GetSizer()
         sizer.Layout()
         self.SetMinSize(sizer.GetMinSize())
         event.Skip()
+
+    #function fired on camera ROI update. It looks to see if there are
+    #other active cameras and asks if you want to set all cameras to that
+    #ROI or not.
+    def updateCamROI(self,camName):
+        #track if already updating cameras, only need to ask once
+        if self.updateROI:
+            return
+        self.updateROI=True
+        asked = False
+        update = False
+        active= wx.GetApp().Depot.getHandlerWithName(camName)
+        cameras = sorted(wx.GetApp().Depot.getHandlersOfType(depot.CAMERA),
+                         key=lambda c: c.name)
+        roi=active.getROI()
+        for camera in cameras:
+            if camera.isEnabled and (camera.name is not camName):
+                #another active camera camera so ask.
+                title = "Apply to other Cameras?"
+                msg = (
+                    " You have added a new ROI to camera  '%s'."
+                    " Do you wish to apply the same ROI to all "
+                    " other cameras?" % (camName)
+                )
+                if not asked:
+                    asked = True
+                    if cockpit.gui.guiUtils.getUserPermission(msg, title):
+                        #update ROI on this camera.
+                        update = True
+                if update:
+                    camera.setROI(roi)
+        self.updateROI=False
 
     ## User clicked the "view last file" button; open the last experiment's
     # file in an image viewer. A bit tricky when there's multiple files
@@ -395,8 +434,6 @@ class WindowsMenu(wx.Menu):
 
         # Add item to launch valueLogViewer (XXX: this should be
         # handled by some sort of plugin system and not hardcoded).
-        from cockpit.util import valueLogger
-        from cockpit.util import csv_plotter
         menu_item = self.Append(wx.ID_ANY, "Launch ValueLogViewer")
         logs = valueLogger.ValueLogger.getLogFiles()
         if not logs:
@@ -413,7 +450,7 @@ class WindowsMenu(wx.Menu):
         # general window for this which we could use for all executor
         # handlers (probably piDIO device should provide an executor
         # handler).
-        for obj in chain(depot.getAllHandlers(), depot.getAllDevices()):
+        for obj in chain(wx.GetApp().Depot.getAllHandlers(), wx.GetApp().Depot.getAllDevices()):
             if hasattr(obj, 'showDebugWindow'):
                 label = 'debug %s (%s)' % (obj.name, obj.__class__.__name__)
                 menu_item = self.Append(wx.ID_ANY, label)
@@ -505,7 +542,7 @@ class MainWindow(wx.Frame):
         help_menu = wx.Menu()
         menu_item = help_menu.Append(wx.ID_ANY, item='Online repository')
         self.Bind(wx.EVT_MENU,
-                  lambda evt: wx.LaunchDefaultBrowser('https://github.com/MicronOxford/cockpit/'),
+                  lambda evt: wx.LaunchDefaultBrowser('https://github.com/microscope-cockpit/cockpit/'),
                   menu_item)
         menu_item = help_menu.Append(wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU, self._OnAbout, menu_item)
@@ -672,7 +709,7 @@ def CockpitAboutInfo() -> wx.adv.AboutDialogInfo:
     # platforms other than GTK the generic dialog is used which we
     # want to avoid.
     if wx.Platform == '__WXGTK__':
-        info.SetWebSite('https://www.micron.ox.ac.uk/software/cockpit/')
+        info.SetWebSite('https://microscope-cockpit.org/')
 
         # We should not have to set this, it should be set later via
         # the AboutBox parent icon.  We don't yet have icons working
